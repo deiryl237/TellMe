@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="TellMe.App/TellMe.App.csproj" />
+  <Project Path="TellMe.Core/TellMe.Core.csproj" />
+  <Project Path="TellMe.Tests/TellMe.Tests.csproj" />
+</Solution>

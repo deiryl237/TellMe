@@ -12,11 +12,16 @@ public class MessageStore{
     public bool Contains(string hash) => MessageCollection.ContainsKey(hash);
     public IReadOnlyCollection<string> Heads => CurrentsHeads;
     public int BufferCount => Buffer.Count;
+    public IEnumerable<string> MissingParents => Buffer.Keys;
+
 
     public MessageStore()
     {
     }
-
+    public MeshMessage? GetMessage(string hash){
+        return
+        MessageCollection.GetValueOrDefault(hash);
+    }
     public void AddMessage(MeshMessage message)
     {
         if (MessageCollection.ContainsKey(message.Hash))
@@ -55,4 +60,5 @@ public class MessageStore{
 
         }
     }
+   
 }

@@ -99,7 +99,45 @@ public class UnitTest1
         Assert.DoesNotContain(msg1.Hash, store.Heads);
         Assert.Single(store.Heads);
     }
+
+    [Fact]
+    public void AddMessage_ConcurrentForkAndMerge_CorrectlyMaintainsHeads()
+    {
+        // 1. Arrange
+        var store = new MessageStore();
+        var m1 = new MeshMessage("Salut tout le monde", "Alice", "Tous", Array.Empty<string>());
+        
+        // Deux messages concurrents (Fork) : tous deux répondent à M1
+        var m2 = new MeshMessage("Moi je veux du thé", "Bob", "Tous", new[] { m1.Hash });
+        var m3 = new MeshMessage("Moi je veux du café", "Charlie", "Tous", new[] { m1.Hash });
+
+        // Un message de fusion (Merge) : Sophie prend M2 et M3 comme parents
+        var m4 = new MeshMessage("On prendra les deux !", "Sophie", "Tous", new[] { m2.Hash, m3.Hash });
+
+        // 2. Act & Assert : Étape par étape
+        store.AddMessage(m1);
+        Assert.Single(store.Heads); // [M1]
+
+        store.AddMessage(m2);
+        Assert.Contains(m2.Hash, store.Heads);
+        Assert.DoesNotContain(m1.Hash, store.Heads); // [M2]
+
+        // Le Fork se produit ici !
+        store.AddMessage(m3);
+        Assert.Equal(2, store.Heads.Count); // Deux têtes simultanées : [M2, M3] !
+        Assert.Contains(m2.Hash, store.Heads);
+        Assert.Contains(m3.Hash, store.Heads);
+
+        // Le Merge se produit ici !
+        store.AddMessage(m4);
+        Assert.Single(store.Heads); // De nouveau une seule tête : [M4] !
+        Assert.Contains(m4.Hash, store.Heads);
+        Assert.DoesNotContain(m2.Hash, store.Heads);
+        Assert.DoesNotContain(m3.Hash, store.Heads);
+        Assert.Equal(4, store.Count);
+    }
 }
+
 
 
 

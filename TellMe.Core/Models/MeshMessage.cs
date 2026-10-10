@@ -3,7 +3,7 @@ using System.Security.Cryptography;
 using System.Text;
 
 
-namespace Tellme.Core.Models;
+namespace TellMe.Core.Models;
 
 public class MeshMessage {
 

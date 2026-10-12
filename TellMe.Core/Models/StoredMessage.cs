@@ -12,6 +12,8 @@ public class StoredMessage{
     [Indexed]public bool IsPersonal {get;set;}
     public bool IsOrphan {get;set;}
     [Indexed]public DateTime ReceivedAt {get;set;} = DateTime.UtcNow;
+    public string Signature { get;set; } = string.Empty;
+
 
     public StoredMessage(){
 
@@ -20,7 +22,7 @@ public class StoredMessage{
     public MeshMessage ToMeshMessage(){
 
        string[] parents = string.IsNullOrEmpty(ParentsJoined)?Array.Empty<string>() : ParentsJoined.Split(',');
-       MeshMessage meshmessage = new MeshMessage(Message,From,To,parents);
+       MeshMessage meshmessage = new MeshMessage(Message,From,To,parents,Signature);
        return meshmessage;
 
     }
@@ -32,7 +34,8 @@ public class StoredMessage{
             From = msg.From,
             To = msg.To,
             IsPersonal = isPersonal,
-            IsOrphan = isOrphan
+            IsOrphan = isOrphan,
+            Signature = msg.Signature
         };
     }
 

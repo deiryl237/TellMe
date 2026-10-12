@@ -1,4 +1,5 @@
 using TellMe.Core.Models;
+using TellMe.Core.Security;
 
 namespace TellMe.Core.Engine;
 
@@ -24,6 +25,16 @@ public class MessageStore{
     }
     public void AddMessage(MeshMessage message)
     {
+
+        // Vérification cryptographique : Si une signature est présente, elle DOIT être authentique
+        if (!string.IsNullOrEmpty(message.Signature))
+        {
+            if (!CryptoService.Verify(message.Hash, message.Signature, message.From))
+            {
+                return; // Signature invalide : message falsifié rejeté !
+            }
+        }
+
         if (MessageCollection.ContainsKey(message.Hash))
         {return;} //si la collection contient déjà le message on s'arrête là
         List<string> missingParents = new List<string>(); //sinon on va vérifier s'il est orphelin ou pas, on créé une liste missingparents

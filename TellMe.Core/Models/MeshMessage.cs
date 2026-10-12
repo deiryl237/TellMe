@@ -12,15 +12,18 @@ public string From{get;}
 public string To{get;}
 public string[] Parents {get;}
 public string Hash {get;}
+public string Signature { get; } = string.Empty;
 
 
-    public MeshMessage(string message,string from,string to,string[] parents){
+
+    public MeshMessage(string message,string from,string to,string[] parents,string signature = ""){
 
          Message = message;
          From = from;
          To = to;
          Parents = parents != null ? parents.OrderBy(p => p).ToArray() : Array.Empty<string>();
          Hash = ComputerHash(Message,From,To,string.Join(",", Parents));
+         Signature = signature ; 
     }
 
     private string ComputerHash(string m,string f,string t, string p){

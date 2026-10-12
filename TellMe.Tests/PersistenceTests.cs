@@ -128,4 +128,33 @@ public class PersistenceTests : IDisposable
         Assert.Contains(remaining, m => m.Hash == "hash_recent_transit");
         Assert.Contains(remaining, m => m.Hash == "hash_old_personal");
     }
+
+    [Fact]
+    public async Task SaveContact_And_GetContact_PersistsContactWithAesKey()
+    {
+        // 1. Arrange
+        var db = new TellMeDatabase(_dbPath);
+        await db.InitializeAsync();
+
+        var bobContact = new Contact
+        {
+            PublicKey = "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEBobPublicKeyExample123456789==",
+            DisplayName = "Bob",
+            SharedAesKey = "UneCleSecreteTresSolidePourAES25",
+            PigeonName = "Plume Royale"
+        };
+
+        // 2. Act : Sauvegarde et récupération par clé publique
+        await db.SaveContactAsync(bobContact);
+        var retrieved = await db.GetContactAsync(bobContact.PublicKey);
+        var allContacts = await db.GetAllContactsAsync();
+
+        // 3. Assert : Clé AES, nom et identité conservés
+        Assert.NotNull(retrieved);
+        Assert.Equal("Bob", retrieved.DisplayName);
+        Assert.Equal("UneCleSecreteTresSolidePourAES25", retrieved.SharedAesKey);
+        Assert.Equal("Plume Royale", retrieved.PigeonName);
+        Assert.Single(allContacts);
+    }
 }
+

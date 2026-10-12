@@ -484,3 +484,7 @@ $RECYCLE.BIN/
 # Documentation and Agent files
 docs/
 .agents/
+
+# Android build outputs
+*.apk
+*.aab

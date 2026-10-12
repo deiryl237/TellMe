@@ -15,6 +15,7 @@ public class TellMeDatabase{
 
         await _database.CreateTableAsync<Account>();
         await _database.CreateTableAsync<StoredMessage>();
+        await _database.CreateTableAsync<Contact>();
 
     }
 
@@ -22,9 +23,17 @@ public class TellMeDatabase{
         await _database.InsertOrReplaceAsync(account); //créer un compte 
     }
 
+    public async Task SaveContactAsync(Contact contact){
+        await _database.InsertOrReplaceAsync(contact);
+    }
+
     public async Task<Account?> GetAccountAsync(){
         Account account = await _database.Table<Account>().FirstOrDefaultAsync();//Récupérer le compte de l'utilisateur et le renvoyer, renvoit null si pas de compte
         return account;
+    }
+
+    public async Task<Contact?> GetContactAsync(string publicKey){
+        return await _database.Table<Contact>().FirstOrDefaultAsync(c => c.PublicKey == publicKey);
     }
 
     public async Task SaveMessageAsync(MeshMessage message, bool isPersonal, bool isOrphan){//Sauvegarder un MeshMessage dans la table StoredMessage
@@ -46,6 +55,10 @@ public class TellMeDatabase{
         var stored = await GetAllStoredMessagesAsync();
         List <MeshMessage> meshmsg = stored.Select(s => s.ToMeshMessage()).ToList();
         return meshmsg;
+    }
+
+    public async Task<List<Contact>> GetAllContactsAsync(){
+        return await _database.Table<Contact>().ToListAsync();
     }
 
     public async Task EvictTransitMessagesAsync (DateTime CutOff){

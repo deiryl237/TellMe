@@ -9,9 +9,9 @@ public class StoredMessage{
     public string From {get;set;} = string.Empty;
     public string To {get;set;} = string.Empty;
     public string ParentsJoined {get;set;} = string.Empty;
-    public bool IsPersonal {get;set;}
+    [Indexed]public bool IsPersonal {get;set;}
     public bool IsOrphan {get;set;}
-    public DateTime ReceivedAt {get;set;} = DateTime.UtcNow;
+    [Indexed]public DateTime ReceivedAt {get;set;} = DateTime.UtcNow;
 
     public StoredMessage(){
 

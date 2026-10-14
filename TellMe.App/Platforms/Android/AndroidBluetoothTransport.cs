@@ -26,17 +26,17 @@ public class AndroidBluetoothTransport : ITransport
     /// <summary>
     /// Mode Serveur : Se met en écoute et attend qu'un pigeon distant se connecte.
     /// </summary>
-    public Task StartAsync()
+    public async Task StartAsync()
     {
+        await StopAsync();
         if (_adapter == null || !_adapter.IsEnabled)
         {
             StatusChanged?.Invoke("Erreur : Bluetooth désactivé ou indisponible.");
-            return Task.CompletedTask;
+            return ;
         }
 
         _cts = new CancellationTokenSource();
         _ = Task.Run(() => ListenForIncomingConnection(_cts.Token));
-        return Task.CompletedTask;
     }
 
     private async Task ListenForIncomingConnection(CancellationToken ct)
@@ -50,7 +50,8 @@ public class AndroidBluetoothTransport : ITransport
             var socket = _serverSocket.Accept();
             if (socket != null)
             {
-                _connectedSocket = socket;
+                 _connectedSocket = socket;
+                try { _serverSocket.Close(); _serverSocket = null; } catch { }
                 StatusChanged?.Invoke($"Pigeon connecté : {socket.RemoteDevice?.Name} !");
                 await StartReadingLoop(socket, ct);
             }
@@ -66,6 +67,7 @@ public class AndroidBluetoothTransport : ITransport
     /// </summary>
     public async Task ConnectToDeviceAsync(string deviceName)
     {
+        await StopAsync();
         if (_adapter == null) return;
 
         var device = _adapter.BondedDevices?.FirstOrDefault(d => d.Name == deviceName);
@@ -118,6 +120,12 @@ public class AndroidBluetoothTransport : ITransport
         {
             StatusChanged?.Invoke("Connexion perdue avec le pair.");
         }
+                finally
+        {
+            try { socket.Close(); } catch { }
+            if (_connectedSocket == socket) _connectedSocket = null;
+        }
+
     }
 
     /// <summary>
@@ -147,14 +155,22 @@ public class AndroidBluetoothTransport : ITransport
         }
     }
 
-    public Task StopAsync()
+        public Task StopAsync()
     {
-        _cts?.Cancel();
-        _connectedSocket?.Close();
-        _serverSocket?.Close();
-        StatusChanged?.Invoke("Transport arrêté.");
+        try
+        {
+            _cts?.Cancel();
+            _connectedSocket?.Close();
+            _connectedSocket = null;
+            _serverSocket?.Close();
+            _serverSocket = null;
+        }
+        catch { }
+
+        StatusChanged?.Invoke("Pigeon déconnecté (prêt pour un nouveau vol).");
         return Task.CompletedTask;
     }
+
 
     /// <summary>
     /// Liste les appareils déjà appairés en Bluetooth dans les paramètres Android.

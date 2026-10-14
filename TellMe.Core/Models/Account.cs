@@ -1,4 +1,5 @@
 using SQLite;
+using TellMe.Core.Security;
 namespace TellMe.Core.Models;
 
 
@@ -19,7 +20,9 @@ public int ExperiencePoints {get;set;} = 0;
 
     public Account(string name) : this() {
         DisplayName = name;
-        Id = Guid.NewGuid().ToString();
+        var (pubKey,privKey) = CryptoService.GenerateKeyPair();
+        Id = pubKey;
+        PrivateKey = privKey;
     }
 
 

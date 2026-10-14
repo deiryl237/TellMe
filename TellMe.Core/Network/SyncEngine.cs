@@ -3,7 +3,6 @@ using TellMe.Core.Models;
 using System.Text.Json;
 
 namespace TellMe.Core.Network;
-
 public class SyncEngine{
 
     private readonly MessageStore _store;
@@ -33,50 +32,94 @@ public class SyncEngine{
 
     }
 
-    private async void OnDataReceived(byte[] data){
+    private static List<SyncPacket> ParsePackets(byte[] data)
+    {
+        var packets = new List<SyncPacket>();
+        ReadOnlySpan<byte> span = data;
 
-        var packet = JsonSerializer.Deserialize<SyncPacket>(data);
-        if (packet == null) return;
+        while (span.Length > 0)
+        {
+            while (span.Length > 0 && (span[0] == (byte)' ' || span[0] == (byte)'\n' || span[0] == (byte)'\r' || span[0] == (byte)'\t'))
+            {
+                span = span.Slice(1);
+            }
 
-        switch (packet.Type){
+            if (span.Length == 0 || span[0] != (byte)'{')
+                break;
 
-            case "Heads" :
-                foreach (string head in packet.Heads){
-                    if(!_store.Contains(head)){
-                        var datarequest = new SyncPacket();
-                        datarequest.Type = "Request";
-                        datarequest.RequestedHash = head;
-                        await SendPacketAsync(datarequest);
+            var reader = new Utf8JsonReader(span);
+            if (!reader.Read()) break;
+
+            var packet = JsonSerializer.Deserialize<SyncPacket>(ref reader);
+            if (packet != null)
+            {
+                packets.Add(packet);
+            }
+
+            if (reader.BytesConsumed <= 0) break;
+            span = span.Slice((int)reader.BytesConsumed);
+        }
+
+        return packets;
+    }
+
+    private async void OnDataReceived(byte[] data)
+    {
+        try {
+        var packets = ParsePackets(data);
+            foreach(var packet in packets){
+                await ProcessPacketAsync(packet);
+                }
+            }
+        catch{}
+    }
+    
+     private async Task ProcessPacketAsync(SyncPacket packet)
+    {
+        switch (packet.Type)
+        {
+            case "Heads":
+                if (packet.Heads != null)
+                {
+                    foreach (string head in packet.Heads)
+                    {
+                        if (!_store.Contains(head))
+                        {
+                            var datarequest = new SyncPacket();
+                            datarequest.Type = "Request";
+                            datarequest.RequestedHash = head;
+                            await SendPacketAsync(datarequest);
+                        }
                     }
                 }
-            break;
+                break;
             case "Request":
-
-                if (packet.RequestedHash != null && _store.Contains(packet.RequestedHash)){
-                MeshMessage message = _store.GetMessage(packet.RequestedHash);
-                var messagepacket = new SyncPacket();
-                messagepacket.Type = "Message";
-                messagepacket.Message = message;
-                await SendPacketAsync(messagepacket);
+                if (packet.RequestedHash != null && _store.Contains(packet.RequestedHash))
+                {
+                    MeshMessage? message = _store.GetMessage(packet.RequestedHash);
+                    if (message != null)
+                    {
+                        var messagepacket = new SyncPacket();
+                        messagepacket.Type = "Message";
+                        messagepacket.Message = message;
+                        await SendPacketAsync(messagepacket);
+                    }
                 }
-
-
-            break;
+                break;
             case "Message":
-                if (packet.Message != null){
+                if (packet.Message != null)
+                {
                     _store.AddMessage(packet.Message);
-                    foreach(string parent in _store.MissingParents){
+                    foreach (string parent in _store.MissingParents)
+                    {
                         var request = new SyncPacket();
                         request.Type = "Request";
                         request.RequestedHash = parent;
                         await SendPacketAsync(request);
                     }
                 }
-
-            break;
+                break;
         }
+    }}
 
-    }
-
-}
 

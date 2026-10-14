@@ -1,5 +1,7 @@
 using TellMe.Core.Engine;
 using TellMe.Core.Models;
+using TellMe.Core.Security;
+using TellMe.Core.Storage;
 
 namespace TellMe.Tests;
 
@@ -8,6 +10,13 @@ public class MeshSimulationTests
     /// <summary>
     /// Synchronise deux téléphones de manière bidirectionnelle lors d'une rencontre Bluetooth.
     /// </summary>
+    public static string _dbPath = TellMeDbPath.dbpath();
+    public TellMeDatabase db = new TellMeDatabase(_dbPath);
+    
+    public MeshSimulationTests(){
+        db.InitializeAsync();
+    }
+    
     private static void Sync(MessageStore a, MessageStore b)
     {
         SyncOneWay(a, b); // A transmet à B ce qui lui manque
@@ -46,18 +55,25 @@ public class MeshSimulationTests
 
     [Fact]
     public void ThreeNodes_PassingMessagesOpportunistically_ConvergeToSameGraph()
-    {
+    {   
+        
         // 1. Arrange : Trois téléphones isolés dans la nature
+        Account aliceAccount = new Account("Alice");
+        db.SaveAccountAsync(aliceAccount);
         var alice = new MessageStore();
+        Account bobAccount = new Account("bob");
+        db.SaveAccountAsync(bobAccount);
         var bob = new MessageStore();
+        Account charlieAccount = new Account("charlie");
+        db.SaveAccountAsync(charlieAccount);
         var charlie = new MessageStore();
 
         // Alice écrit M1 (le matin de son côté)
-        var m1 = new MeshMessage("Bonjour d'Alice", "Alice", "Tous", Array.Empty<string>());
+        var m1 = MeshMessage.CreateSigned("Bonjour d'Alice", "Tous", Array.Empty<string>(), aliceAccount.Id, aliceAccount.PrivateKey);
         alice.AddMessage(m1);
 
         // Bob écrit M2 (le matin de son côté, sans connaître M1)
-        var m2 = new MeshMessage("Bonjour de Bob", "Bob", "Tous", Array.Empty<string>());
+        var m2 = MeshMessage.CreateSigned("Bonjour de Bob", "Tous", Array.Empty<string>(), bobAccount.Id, bobAccount.PrivateKey);
         bob.AddMessage(m2);
 
         // 2. Act : Les rencontres de la journée !

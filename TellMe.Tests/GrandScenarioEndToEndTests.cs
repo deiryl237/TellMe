@@ -17,6 +17,7 @@ namespace TellMe.Tests;
 /// </summary>
 public class GrandScenarioEndToEndTests : IDisposable
 {
+    public static string _dbPath = TellMeDbPath.dbpath();
     private readonly string _aliceDbPath;
     private readonly string _bobDbPath;
     private readonly string _charlieDbPath;

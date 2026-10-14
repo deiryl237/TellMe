@@ -70,6 +70,12 @@
                     TextColor="#FFFFFF"
                     CornerRadius="8"
                     Clicked="OnConnectClicked" />
+                <Button x:Name="DisconnectBtn"
+                    Text="🔌 Déconnecter le pigeon actuel"
+                    BackgroundColor="#FF453A"
+                    TextColor="#FFFFFF"
+                    CornerRadius="8"
+                    Clicked="OnDisconnectClicked" />
 
             <BoxView HeightRequest="1" Color="#2E2E38" Margin="0,4" />
 
@@ -78,6 +84,14 @@
                    FontSize="15"
                    FontAttributes="Bold"
                    TextColor="#FFFFFF" />
+
+            <Entry x:Name="AuthorEntry"
+                Placeholder="Mon pseudo (ex: Téléphone 1)"
+                Text="Téléphone 1"
+                PlaceholderColor="#8E8E93"
+                TextColor="#FFFFFF"
+                BackgroundColor="#1E1E24" />
+
 
             <Entry x:Name="MessageEntry"
                    Placeholder="Écris ton message secret ici..."
@@ -92,19 +106,29 @@
                     FontAttributes="Bold"
                     CornerRadius="8"
                     Clicked="OnSendClicked" />
+            <Button x:Name="SyncBtn"
+                    Text=" Synchroniser le DAG"
+                    BackgroundColor="#FF9F0A"
+                    TextColor="#FFFFFF"
+                    CornerRadius="8"
+                    Clicked="OnSyncClicked" />
 
-            <!-- ZONE DE RÉCEPTION -->
-            <Label Text="Dernier message reçu :"
-                   FontSize="13"
-                   TextColor="#8E8E93"
-                   Margin="0,8,0,0" />
+   
+            <!-- ZONE DU DAG LOCAL -->
+        <Label x:Name="DagStatusLabel"
+            Text="DAG : 0 message | 0 tête"
+            FontSize="14"
+            FontAttributes="Bold"
+            TextColor="#30D158"
+            Margin="0,8,0,0" />
 
-            <Frame BackgroundColor="#1C1C1E" BorderColor="#3A3A3C" CornerRadius="10" Padding="14">
-                <Label x:Name="ReceivedLabel"
-                       Text="(En attente de réception...)"
-                       FontSize="15"
-                       TextColor="#FFD60A" />
-            </Frame>
+        <Frame BackgroundColor="#1C1C1E" BorderColor="#3A3A3C" CornerRadius="10" Padding="14">
+            <Label x:Name="DagMessagesLabel"
+                Text="(Aucun message dans le DAG local)"
+                FontSize="14"
+                TextColor="#FFD60A" />
+        </Frame>
+
 
         </VerticalStackLayout>
     </ScrollView>

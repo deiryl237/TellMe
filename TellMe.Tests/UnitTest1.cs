@@ -1,10 +1,25 @@
 using TellMe.Core.Engine;
 using TellMe.Core.Models;
+using TellMe.Core.Storage;
 
 namespace TellMe.Tests;
 
 public class UnitTest1
 {
+    public static string _dbPath = TellMeDbPath.dbpath();
+    public TellMeDatabase db = new TellMeDatabase(_dbPath);
+    public Account aliceAccount = new Account("Alice");
+    public Account charlieAccount = new Account("Charlie");
+    public Account bobAccount = new Account("Bob");
+    public Account sophieAccount = new Account("Sophie");
+
+    public UnitTest1(){
+        db.InitializeAsync();
+        db.SaveAccountAsync(aliceAccount);
+        db.SaveAccountAsync(charlieAccount);
+        db.SaveAccountAsync(bobAccount);
+        db.SaveAccountAsync(sophieAccount);
+    }
     [Fact]
     public void Test1()
     {
@@ -23,7 +38,7 @@ public class UnitTest1
     {
         // 1. Arrange
         var store = new MessageStore();
-        var msgGenesis = new MeshMessage("Premier message", "Alice", "Bob", parents: Array.Empty<string>());
+        var msgGenesis = MeshMessage.CreateSigned("Premier message", "Bob", Array.Empty<string>(), aliceAccount.Id, aliceAccount.PrivateKey);
 
         // 2. Act
         store.AddMessage(msgGenesis);
@@ -40,7 +55,7 @@ public class UnitTest1
     {
         // 1. Arrange
         var store = new MessageStore();
-        var msg = new MeshMessage("Bonjour", "Alice", "Bob", parents: Array.Empty<string>());
+        var msg = MeshMessage.CreateSigned("Bonjour", "Bob", Array.Empty<string>(), aliceAccount.Id, aliceAccount.PrivateKey);
 
         // 2. Act : On ajoute le message une première fois, puis une deuxième fois
         store.AddMessage(msg);
@@ -56,8 +71,8 @@ public class UnitTest1
     {
         // 1. Arrange
         var store = new MessageStore();
-        var msg1 = new MeshMessage("Premier message", "Alice", "Bob", parents: Array.Empty<string>());
-        var msg2 = new MeshMessage("Deuxième message", "Bob", "Alice", parents: new[] { msg1.Hash });
+        var msg1 = MeshMessage.CreateSigned("Premier message", "Bob", Array.Empty<string>(), aliceAccount.Id, aliceAccount.PrivateKey);
+        var msg2 = MeshMessage.CreateSigned("Deuxième message", "Alice", new[] { msg1.Hash }, bobAccount.Id, bobAccount.PrivateKey);
 
         // 2. Act
         store.AddMessage(msg1);
@@ -75,8 +90,8 @@ public class UnitTest1
     {
         // 1. Arrange
         var store = new MessageStore();
-        var msg1 = new MeshMessage("Premier message", "Alice", "Bob", parents: Array.Empty<string>());
-        var msg2 = new MeshMessage("Deuxième message (orphelin)", "Bob", "Alice", parents: new[] { msg1.Hash });
+        var msg1 = MeshMessage.CreateSigned("Premier message", "Bob", Array.Empty<string>(), aliceAccount.Id, aliceAccount.PrivateKey);
+        var msg2 = MeshMessage.CreateSigned("Deuxième message (orphelin)", "Alice", new[] { msg1.Hash }, bobAccount.Id, bobAccount.PrivateKey);
 
         // 2. Act 1 : L'enfant M2 arrive EN PREMIER !
         store.AddMessage(msg2);
@@ -105,14 +120,14 @@ public class UnitTest1
     {
         // 1. Arrange
         var store = new MessageStore();
-        var m1 = new MeshMessage("Salut tout le monde", "Alice", "Tous", Array.Empty<string>());
+        var m1 = MeshMessage.CreateSigned("Salut tout le monde", "Tous", Array.Empty<string>(), aliceAccount.Id, aliceAccount.PrivateKey);
         
         // Deux messages concurrents (Fork) : tous deux répondent à M1
-        var m2 = new MeshMessage("Moi je veux du thé", "Bob", "Tous", new[] { m1.Hash });
-        var m3 = new MeshMessage("Moi je veux du café", "Charlie", "Tous", new[] { m1.Hash });
+        var m2 = MeshMessage.CreateSigned("Moi je veux du thé", "Tous", new[] { m1.Hash }, bobAccount.Id, bobAccount.PrivateKey);
+        var m3 = MeshMessage.CreateSigned("Moi je veux du café", "Tous", new[] { m1.Hash }, charlieAccount.Id, charlieAccount.PrivateKey);
 
         // Un message de fusion (Merge) : Sophie prend M2 et M3 comme parents
-        var m4 = new MeshMessage("On prendra les deux !", "Sophie", "Tous", new[] { m2.Hash, m3.Hash });
+        var m4 = MeshMessage.CreateSigned("On prendra les deux !", "Tous", new[] { m2.Hash, m3.Hash }, sophieAccount.Id, sophieAccount.PrivateKey);
 
         // 2. Act & Assert : Étape par étape
         store.AddMessage(m1);

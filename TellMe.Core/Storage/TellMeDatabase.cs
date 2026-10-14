@@ -31,6 +31,10 @@ public class TellMeDatabase{
         Account account = await _database.Table<Account>().FirstOrDefaultAsync();//Récupérer le compte de l'utilisateur et le renvoyer, renvoit null si pas de compte
         return account;
     }
+    public async Task<Account?> GetAccountSpecAsync(string publicKey){
+        Account account = await _database.Table<Account>().FirstOrDefaultAsync(c => c.Id == publicKey);//Récupérer le compte de l'utilisateur et le renvoyer, renvoit null si pas de compte
+        return account;
+    }
 
     public async Task<Contact?> GetContactAsync(string publicKey){
         return await _database.Table<Contact>().FirstOrDefaultAsync(c => c.PublicKey == publicKey);

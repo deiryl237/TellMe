@@ -32,16 +32,22 @@ public static class CryptoService{
 
     public static bool Verify (string data, string signature, string publicKey){
 
-        using var ecdsa = ECDsa.Create();
+        try {
+            
+            using var ecdsa = ECDsa.Create();
 
-        byte[] KeyBytes = Convert.FromBase64String(publicKey);
-        ecdsa.ImportSubjectPublicKeyInfo(KeyBytes, out _);
+            byte[] KeyBytes = Convert.FromBase64String(publicKey);
+            ecdsa.ImportSubjectPublicKeyInfo(KeyBytes, out _);
 
-        byte[] dataBytes = Encoding.UTF8.GetBytes(data);
+            byte[] dataBytes = Encoding.UTF8.GetBytes(data);
 
-        byte[] signatureBytes = Convert.FromBase64String(signature);
+            byte[] signatureBytes = Convert.FromBase64String(signature);
 
-        return ecdsa.VerifyData(dataBytes,signatureBytes,HashAlgorithmName.SHA256);
+            return ecdsa.VerifyData(dataBytes,signatureBytes,HashAlgorithmName.SHA256);
+
+        
+         }
+         catch{return false;}
 
     }
 

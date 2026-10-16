@@ -9,25 +9,35 @@ public class AndroidBluetoothTransport : ITransport
     // L'UUID unique qui identifie le service TellMe dans l'air Bluetooth
     private static readonly UUID TellMeUuid = UUID.FromString("a6c8e3b0-28b9-4a4b-bb29-9e7b99c01123")!;
     private const string ServiceName = "TellMePigeonService";
-
+    private readonly BleDiscoveryManager _bleManager;
     private readonly BluetoothAdapter? _adapter;
     private BluetoothServerSocket? _serverSocket;
     private BluetoothSocket? _connectedSocket;
     private CancellationTokenSource? _cts;
 
     public event Action<byte[]>? DataReceived;
+    public event Action? PeerConnected;
+
     public event Action<string>? StatusChanged; // Pour afficher ce qui se passe sur l'écran
 
     public AndroidBluetoothTransport()
     {
         _adapter = BluetoothAdapter.DefaultAdapter;
+        _bleManager = new BleDiscoveryManager();
+        _bleManager.StatusLog += msg => StatusChanged?.Invoke(msg);
+        _bleManager.PeerDiscovered += async device =>{
+            await ConnectToDeviceAsync(device);
+        };
     }
 
     /// <summary>
     /// Mode Serveur : Se met en écoute et attend qu'un pigeon distant se connecte.
     /// </summary>
     public async Task StartAsync()
-    {
+    {   
+        _bleManager.StartAdvertising(); // Allume le Phare
+        _bleManager.StartScanning();    // Allume le Radar
+
         await StopAsync();
         if (_adapter == null || !_adapter.IsEnabled)
         {
@@ -41,52 +51,72 @@ public class AndroidBluetoothTransport : ITransport
 
     private async Task ListenForIncomingConnection(CancellationToken ct)
     {
+    while (!ct.IsCancellationRequested && _adapter != null && _adapter.IsEnabled)
+    {
         try
         {
-            StatusChanged?.Invoke("En attente d'un pigeon distant (Mode Serveur)...");
-            _serverSocket = _adapter!.ListenUsingRfcommWithServiceRecord(ServiceName, TellMeUuid);
+            StatusChanged?.Invoke("Pigeonnier ouvert : En attente de voisins...");
+            _serverSocket = _adapter.ListenUsingInsecureRfcommWithServiceRecord(ServiceName, TellMeUuid);
             
-            // Attend qu'un appareil se connecte
             var socket = _serverSocket.Accept();
             if (socket != null)
             {
-                 _connectedSocket = socket;
+                _connectedSocket = socket;
+                PeerConnected?.Invoke();
                 try { _serverSocket.Close(); _serverSocket = null; } catch { }
-                StatusChanged?.Invoke($"Pigeon connecté : {socket.RemoteDevice?.Name} !");
+                StatusChanged?.Invoke($"Pigeon connecté : {socket.RemoteDevice?.Address} !");
                 await StartReadingLoop(socket, ct);
             }
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            StatusChanged?.Invoke($"Écoute arrêtée : {ex.Message}");
+            // Dès qu'une connexion se termine ou échoue, on attend 1 seconde et la boucle while rouvre le serveur !
+            await Task.Delay(1000, ct);
+        }
+    }
+    }
+
+    /// <summary>
+/// Surcharge Manuelle : pour l'interface de test (bouton de l'écran)
+/// </summary>
+    public async Task ConnectToDeviceAsync(string deviceName)
+    {
+        if (_adapter == null) return;
+        var device = _adapter.BondedDevices?.FirstOrDefault(d => d.Name == deviceName);
+        if (device != null)
+        {
+            await ConnectToDeviceAsync(device);
+        }
+        else
+        {
+            StatusChanged?.Invoke($"Appareil '{deviceName}' non trouvé dans les appareils appairés.");
         }
     }
 
     /// <summary>
     /// Mode Client : Se connecte activement à un appareil appairé précis.
     /// </summary>
-    public async Task ConnectToDeviceAsync(string deviceName)
+    public async Task ConnectToDeviceAsync(BluetoothDevice device)
     {
         await StopAsync();
         if (_adapter == null) return;
-
-        var device = _adapter.BondedDevices?.FirstOrDefault(d => d.Name == deviceName);
         if (device == null)
         {
-            StatusChanged?.Invoke($"Appareil '{deviceName}' non trouvé dans les appareils appairés.");
             return;
         }
 
         try
         {
-            StatusChanged?.Invoke($"Connexion vers {deviceName} en cours...");
+            StatusChanged?.Invoke($"Connexion vers {device.Address} en cours...");
             _cts = new CancellationTokenSource();
-            var socket = device.CreateRfcommSocketToServiceRecord(TellMeUuid);
+            var socket = device.CreateInsecureRfcommSocketToServiceRecord(TellMeUuid);
             if (socket == null) return;
 
             await socket.ConnectAsync();
             _connectedSocket = socket;
-            StatusChanged?.Invoke($"Connecté avec succès à {deviceName} !");
+            PeerConnected?.Invoke();
+
+            StatusChanged?.Invoke($"Connecté avec succès à {device.Address} !");
 
             _ = Task.Run(() => StartReadingLoop(socket, _cts.Token));
         }

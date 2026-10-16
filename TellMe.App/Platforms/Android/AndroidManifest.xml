@@ -1,10 +1,18 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-	<application android:allowBackup="true" android:icon="@mipmap/appicon" android:roundIcon="@mipmap/appicon_round" android:supportsRtl="true"></application>
+	<application android:allowBackup="true" android:icon="@mipmap/appicon" android:roundIcon="@mipmap/appicon_round" android:supportsRtl="true">
+	<service android:name=".Platforms.Android.TellMeBackgroundService" android:foregroundServiceType="connectedDevice" android:exported="false"/>
+	</application>
 	
 	<!-- Réseau classique -->
 	<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 	<uses-permission android:name="android.permission.INTERNET" />
+	
+	<!--Permission pour le service d'arriere plan permanent-->
+
+	<uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
+	<uses-permission android:name="android.permission.FOREGROUND_SERVICE_CONNECTED_DEVICE"/>
+	<uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
 
 	<!-- Bluetooth pour Android 12+ (API 31+) -->
 	<uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />

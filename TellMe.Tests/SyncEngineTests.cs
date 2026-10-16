@@ -24,7 +24,7 @@ public class VirtualTransport : ITransport
     }
     public VirtualTransport? Partner { get; set; }
     public event Action<byte[]>? DataReceived;
-
+    public event Action? PeerConnected;
     public Task StartAsync() => Task.CompletedTask;
     public Task StopAsync() => Task.CompletedTask;
 

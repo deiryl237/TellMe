@@ -13,6 +13,11 @@ public class SyncEngine{
         _transport = transport;
         _store = store;
         _transport.DataReceived += OnDataReceived;
+        _transport.PeerConnected += async () =>
+        {
+            await StartSyncAsync();
+        };
+
 
     }
 

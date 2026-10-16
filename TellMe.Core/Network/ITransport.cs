@@ -10,5 +10,6 @@ public interface ITransport{
     Task SendAsync(byte[] data);
     // 4. L'événement déclenché quand des octets arrivent de l'autre téléphone
     event Action<byte[]>? DataReceived;
+    event Action? PeerConnected;
 
 }

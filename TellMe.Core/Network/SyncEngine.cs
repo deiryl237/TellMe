@@ -1,12 +1,17 @@
 using TellMe.Core.Engine;
 using TellMe.Core.Models;
 using System.Text.Json;
+using TellMe.Core.Security;
 
 namespace TellMe.Core.Network;
 public class SyncEngine{
 
     private readonly MessageStore _store;
     private readonly ITransport _transport;
+    public event Action<ContactRequest>? ContactRequestReceived;
+    public event Action<ContactResponse>? ContactResponseReceived;
+
+
 
     public SyncEngine(MessageStore store, ITransport transport){
 
@@ -124,7 +129,40 @@ public class SyncEngine{
                     }
                 }
                 break;
+            case "ContactRequest":
+            if (packet.request != null){
+                var request = packet.request;
+                if(CryptoService.Verify(request.RequestHash,request.RequestSignature,request.RequesterId))
+                {
+                    ContactRequestReceived?.Invoke(packet.request);
+                }
+            }
+            break;
+            case "ContactResponse":
+            if (packet.response != null)
+            {
+                ContactResponseReceived?.Invoke(packet.response);
+            }
+            break;
         }
-    }}
+    }
+
+    public async Task<ContactRequest> SendContactRequestAsync(Account myAccount){
+        var request = new ContactRequest(myAccount);
+        var packet = new SyncPacket();
+        packet.Type = "ContactRequest";
+        packet.request = request;
+        await SendPacketAsync(packet);
+        return request;
+    }
+    
+    public async Task SendContactResponseAsync(string requestHash, bool accepted, Account myAccount){
+        var response = new ContactResponse(requestHash,accepted,myAccount);
+        var packet = new SyncPacket();
+        packet.Type = "ContactResponse";
+        packet.response = response;
+        await SendPacketAsync(packet);
+    }
+}
 
 

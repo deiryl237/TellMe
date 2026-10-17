@@ -29,7 +29,14 @@ public static class CryptoService{
 
         return signature;
     }
-
+    private static byte[] GetKeyBytes(string key)
+    {
+        if (key.Length == 44)
+        {
+            try { return Convert.FromBase64String(key); } catch { }
+        }
+        return Encoding.UTF8.GetBytes(key);
+    }
     public static bool Verify (string data, string signature, string publicKey){
 
         try {
@@ -51,9 +58,13 @@ public static class CryptoService{
 
     }
 
+    public static string GenerateAesKeys(){
+       return Convert.ToBase64String(RandomNumberGenerator.GetBytes(32));
+    }
+
     public static string Encrypt(string plainText, string key) {
 
-        byte[] keyBytes = Encoding.UTF8.GetBytes(key);
+        byte[] keyBytes = GetKeyBytes(key);
         using var aes = Aes.Create(); 
         aes.Key = keyBytes;
 
@@ -72,7 +83,7 @@ public static class CryptoService{
         byte[] cipherBytes = allBytes.Skip(16).ToArray();
 
         using var aes = Aes.Create();
-        aes.Key = Encoding.UTF8.GetBytes(key);
+        aes.Key = GetKeyBytes(key);
         byte[] result = aes.DecryptCbc(cipherBytes,IV);
 
         return Encoding.UTF8.GetString(result);

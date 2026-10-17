@@ -146,4 +146,64 @@ public class SyncEngineTests
         Assert.Single(bobStore.Heads);
         Assert.Contains(m3.Hash, bobStore.Heads);
     }
+
+    [Fact]
+    public async Task ContactHandshake_FullFlow_SucceedsWithMutualVerification()
+    {
+        // 1. Arrange : Alice et Bob sont reliés par un canal virtuel
+        var (aliceTransport, bobTransport) = VirtualTransport.CreatePair();
+        var aliceEngine = new SyncEngine(new MessageStore(), aliceTransport);
+        var bobEngine = new SyncEngine(new MessageStore(), bobTransport);
+
+        ContactRequest? receivedRequest = null;
+        bobEngine.ContactRequestReceived += req => receivedRequest = req;
+
+        ContactResponse? receivedResponse = null;
+        aliceEngine.ContactResponseReceived += res => receivedResponse = res;
+
+        // 2. Act : Alice initie la demande
+        var sentRequest = await aliceEngine.SendContactRequestAsync(aliceAccount);
+
+        // Attente de transmission
+        for (int i = 0; i < 20 && receivedRequest == null; i++)
+        {
+            await Task.Delay(20);
+        }
+
+        // Vérification de la réception de la demande chez Bob
+        Assert.NotNull(receivedRequest);
+        Assert.Equal(aliceAccount.Id, receivedRequest.RequesterId);
+        Assert.Equal(aliceAccount.DisplayName, receivedRequest.Name);
+        Assert.Equal(sentRequest.SharedAesKey, receivedRequest.SharedAesKey);
+
+        // Bob accepte la demande d'Alice
+        await bobEngine.SendContactResponseAsync(receivedRequest.RequestHash, true, bobAccount);
+
+        // Attente de transmission de la réponse
+        for (int i = 0; i < 20 && receivedResponse == null; i++)
+        {
+            await Task.Delay(20);
+        }
+
+        // 3. Assert : Alice a reçu la réponse positive de Bob
+        Assert.NotNull(receivedResponse);
+        Assert.True(receivedResponse.ContactAccepted);
+
+        // Alice vérifie que la réponse est authentiquement signée par Bob
+        bool isBobSigValid = TellMe.Core.Security.CryptoService.Verify(
+            $"{sentRequest.RequestHash}|accepted",
+            receivedResponse.ResponseSignature,
+            bobAccount.Id
+        );
+        Assert.True(isBobSigValid);
+
+        // Preuve finale : Alice chiffre un message secret avec sa clé, Bob le déchiffre avec sa copie !
+        string secretMessage = "Bonjour Bob, notre canal E2EE direct est sécurisé !";
+        string cipher = TellMe.Core.Security.CryptoService.Encrypt(secretMessage, sentRequest.SharedAesKey);
+        string decrypted = TellMe.Core.Security.CryptoService.Decrypt(cipher, receivedRequest.SharedAesKey);
+
+        Assert.NotEqual(secretMessage, cipher);
+        Assert.Equal(secretMessage, decrypted);
+    }
 }
+

@@ -29,3 +29,25 @@ public class ContactQrCard {
 
     }
 }
+
+public class BoardQrCard {
+    public string Id {get;set;} = string.Empty;
+    public string DisplayName {get;set;} = string.Empty;
+    public string key{get;set;} = string.Empty;
+
+    public BoardQrCard(string id,string name,string _key){
+
+        key = _key;
+        DisplayName = name;
+        Id = id;
+
+    }
+
+    public string ToJson() => JsonSerializer.Serialize(this);
+    public static BoardQrCard? Fromjson(string json){
+
+        var boardcard = JsonSerializer.Deserialize<BoardQrCard>(json);
+        return boardcard;
+
+    }
+}

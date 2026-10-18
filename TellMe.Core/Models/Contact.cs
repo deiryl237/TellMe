@@ -22,4 +22,9 @@ public class Contact{
         
     }
 
+    public Contact(string Id, string name){
+        DisplayName = name;
+        PublicKey = Id;
+    }
+
 }

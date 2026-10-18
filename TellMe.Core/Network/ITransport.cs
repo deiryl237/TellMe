@@ -11,5 +11,8 @@ public interface ITransport{
     // 4. L'événement déclenché quand des octets arrivent de l'autre téléphone
     event Action<byte[]>? DataReceived;
     event Action? PeerConnected;
+        // 5. Réinitialiser le cooldown de synchronisation pour forcer la reconnexion immédiate
+    void ResetCooldown() { }
+
 
 }

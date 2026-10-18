@@ -20,6 +20,12 @@ public class AndroidBluetoothTransport : ITransport
 
     public event Action<string>? StatusChanged; // Pour afficher ce qui se passe sur l'écran
 
+    public void ResetCooldown()
+    {
+    _bleManager.ResetCooldown();
+    }
+
+
     public AndroidBluetoothTransport()
     {
         _adapter = BluetoothAdapter.DefaultAdapter;

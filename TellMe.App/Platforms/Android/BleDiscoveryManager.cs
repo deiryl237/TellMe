@@ -22,6 +22,10 @@ public class BleDiscoveryManager{
         _adapter = BluetoothAdapter.DefaultAdapter;
     }
 
+    public void ResetCooldown(){
+        _lastSyncTimes.Clear();
+    }
+
     private bool CanSyncWith(string address)
     {
         // Si l'appareil n'a JAMAIS été vu, on peut synchroniser tout de suite !

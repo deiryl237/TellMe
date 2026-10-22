@@ -17,6 +17,8 @@ public class Contact{
     public bool IsBoard => PublicKey.Contains("BOARD:");
     [Ignore]
     public bool IsDirectContact => !IsBoard;
+    [Ignore]
+    public string Icon => IsBoard ? "📢" : "👤";
 
     public Contact(){
         

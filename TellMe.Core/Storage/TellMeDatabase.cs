@@ -66,6 +66,62 @@ public class TellMeDatabase{
         await _database.ExecuteAsync(
         "DELETE FROM StoredMessage WHERE IsPersonal = 0 AND ReceivedAt < ?", CutOff);
 
+    }
 
+    /// <summary>
+    /// Récupère les messages d'une conversation spécifique (Board ou Contact direct) de manière paginée.
+    /// Les messages sont retournés du plus récent au plus ancien (DESC) jusqu'à 'limit'.
+    /// Si 'beforeTimestamp' > 0, ne récupère que les messages strictement antérieurs à cette date.
+    /// </summary>
+    public async Task<List<StoredMessage>> GetConversationMessagesPagedAsync(
+        string conversationKey, 
+        bool isBoard, 
+        string? myId, 
+        int limit = 25, 
+        long beforeTimestamp = 0)
+    {
+        if (isBoard)
+        {
+            if (beforeTimestamp > 0)
+            {
+                var dt = DateTimeOffset.FromUnixTimeMilliseconds(beforeTimestamp).UtcDateTime;
+                string query = @"SELECT * FROM StoredMessage 
+                                  WHERE [To] = ? 
+                                    AND (CreatedAt < ? OR (CreatedAt = 0 AND ReceivedAt < ?))
+                                  ORDER BY CASE WHEN CreatedAt > 0 THEN CreatedAt ELSE 0 END DESC, ReceivedAt DESC 
+                                  LIMIT ?";
+                return await _database.QueryAsync<StoredMessage>(query, conversationKey, beforeTimestamp, dt, limit);
+            }
+            else
+            {
+                string query = @"SELECT * FROM StoredMessage 
+                                  WHERE [To] = ? 
+                                  ORDER BY CASE WHEN CreatedAt > 0 THEN CreatedAt ELSE 0 END DESC, ReceivedAt DESC 
+                                  LIMIT ?";
+                return await _database.QueryAsync<StoredMessage>(query, conversationKey, limit);
+            }
+        }
+        else
+        {
+            string safeMyId = myId ?? string.Empty;
+            if (beforeTimestamp > 0)
+            {
+                var dt = DateTimeOffset.FromUnixTimeMilliseconds(beforeTimestamp).UtcDateTime;
+                string query = @"SELECT * FROM StoredMessage 
+                                  WHERE (([To] = ? AND [From] = ?) OR ([From] = ? AND [To] = ?))
+                                    AND (CreatedAt < ? OR (CreatedAt = 0 AND ReceivedAt < ?))
+                                  ORDER BY CASE WHEN CreatedAt > 0 THEN CreatedAt ELSE 0 END DESC, ReceivedAt DESC 
+                                  LIMIT ?";
+                return await _database.QueryAsync<StoredMessage>(query, conversationKey, safeMyId, conversationKey, safeMyId, beforeTimestamp, dt, limit);
+            }
+            else
+            {
+                string query = @"SELECT * FROM StoredMessage 
+                                  WHERE (([To] = ? AND [From] = ?) OR ([From] = ? AND [To] = ?))
+                                  ORDER BY CASE WHEN CreatedAt > 0 THEN CreatedAt ELSE 0 END DESC, ReceivedAt DESC 
+                                  LIMIT ?";
+                return await _database.QueryAsync<StoredMessage>(query, conversationKey, safeMyId, conversationKey, safeMyId, limit);
+            }
+        }
     }
 }

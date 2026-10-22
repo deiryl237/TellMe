@@ -1,0 +1,329 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:models="clr-namespace:TellMe.Core.Models;assembly=TellMe.Core"
+             xmlns:controls="clr-namespace:TellMe.App.Controls"
+             x:Class="TellMe.App.Views.MainPage"
+             Title="TellMe"
+             BackgroundColor="#F8FAFC">
+
+    <Grid RowDefinitions="Auto, *, Auto">
+
+        <!-- ======================================================== -->
+        <!-- EN-TÊTE LIGHT MODERNE TELLME                              -->
+        <!-- ======================================================== -->
+        <Grid Grid.Row="0" BackgroundColor="#FFFFFF" Padding="20, 14, 20, 12">
+            <Grid ColumnDefinitions="*, Auto" VerticalOptions="Center">
+                <HorizontalStackLayout Spacing="8" VerticalOptions="Center">
+                    <Label Text="🕊️" FontSize="26" VerticalOptions="Center" />
+                    <Label Text="TellMe" FontSize="22" FontAttributes="Bold" TextColor="#7C3AED" VerticalOptions="Center" />
+                </HorizontalStackLayout>
+                <Frame Grid.Column="1" BackgroundColor="#F5F3FF" BorderColor="#DDD6FE" CornerRadius="12" Padding="10, 4" VerticalOptions="Center">
+                    <Label Text="BLE MESH" FontSize="11" FontAttributes="Bold" TextColor="#7C3AED" />
+                </Frame>
+            </Grid>
+        </Grid>
+
+        <!-- ======================================================== -->
+        <!-- ZONE DE CONTENU PRINCIPALE (4 ONGLETS)                    -->
+        <!-- ======================================================== -->
+        <Grid Grid.Row="1">
+
+            <!-- ==================================================== -->
+            <!-- ONGLET 0 : ACCUEIL / PIGEONNIER & RADAR MESH        -->
+            <!-- ==================================================== -->
+            <ScrollView x:Name="TabHome" IsVisible="True" Padding="16, 12, 16, 16">
+                <VerticalStackLayout Spacing="16">
+
+                    <!-- Profil & Statut Pigeon -->
+                    <Frame BackgroundColor="#FFFFFF" BorderColor="#E2E8F0" CornerRadius="18" Padding="16">
+                        <VerticalStackLayout Spacing="10">
+                            <Grid ColumnDefinitions="Auto, *, Auto" ColumnSpacing="12" VerticalOptions="Center">
+                                <Label Grid.Column="0" Text="🕊️" FontSize="28" VerticalOptions="Center" />
+                                
+                                <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Spacing="2">
+                                    <Label Text="{Binding DisplayName}" FontSize="18" FontAttributes="Bold" TextColor="#0F172A" />
+                                    <Label Text="{Binding PigeonName, StringFormat='Pigeon : {0}'}" FontSize="13" TextColor="#7C3AED" FontAttributes="Bold" />
+                                </VerticalStackLayout>
+
+                                <Button Grid.Column="2"
+                                        Text="Modifier"
+                                        FontSize="12"
+                                        BackgroundColor="#F1F5F9"
+                                        TextColor="#334155"
+                                        Padding="12, 6"
+                                        CornerRadius="8"
+                                        Clicked="OnChangeNameClicked" />
+                            </Grid>
+
+                            <BoxView HeightRequest="1" Color="#F1F5F9" Margin="0, 4" />
+
+                            <Grid ColumnDefinitions="Auto, *" ColumnSpacing="8" VerticalOptions="Center">
+                                <BoxView Grid.Column="0" WidthRequest="8" HeightRequest="8" CornerRadius="4" Color="#16A34A" VerticalOptions="Center" />
+                                <Label Grid.Column="1" Text="{Binding StatusText}" FontSize="12" TextColor="#16A34A" FontAttributes="Bold" LineBreakMode="TailTruncation" />
+                            </Grid>
+                        </VerticalStackLayout>
+                    </Frame>
+
+                    <!-- Actions rapides QR -->
+                    <Grid ColumnDefinitions="*, *" ColumnSpacing="12">
+                        <Button Grid.Column="0"
+                                Text="Mon QR Code"
+                                BackgroundColor="#F1F5F9"
+                                TextColor="#1E293B"
+                                BorderColor="#CBD5E1"
+                                BorderWidth="1"
+                                FontAttributes="Bold"
+                                CornerRadius="12"
+                                HeightRequest="48"
+                                Clicked="OnShowMyQrClicked" />
+                        
+                        <Button Grid.Column="1"
+                                Text="+ Ajouter un ami"
+                                BackgroundColor="#2563EB"
+                                TextColor="#FFFFFF"
+                                FontAttributes="Bold"
+                                CornerRadius="12"
+                                HeightRequest="48"
+                                Clicked="OnAddContactClicked" />
+                    </Grid>
+
+                    <!-- Radar & Réseau Mesh -->
+                    <Frame BackgroundColor="#FFFFFF" BorderColor="#E2E8F0" CornerRadius="18" Padding="16">
+                        <VerticalStackLayout Spacing="12">
+                            <Grid ColumnDefinitions="Auto, *">
+                                <Label Grid.Column="0" Text="📡" FontSize="20" VerticalOptions="Center" Margin="0,0,8,0" />
+                                <Label Grid.Column="1" Text="Réseau Mesh Décentralisé" FontSize="16" FontAttributes="Bold" TextColor="#0F172A" VerticalOptions="Center" />
+                            </Grid>
+
+                            <Label Text="TellMe fonctionne à 100% sans Internet ni 4G grâce au maillage Bluetooth LE de campus. Vos pigeons transportent vos messages de proche en proche !"
+                                   FontSize="13" TextColor="#64748B" LineHeight="1.3" />
+
+                            <Grid ColumnDefinitions="*, *" ColumnSpacing="10" Margin="0, 4, 0, 0">
+                                <Frame BackgroundColor="#F8FAFC" BorderColor="#E2E8F0" CornerRadius="12" Padding="12">
+                                    <VerticalStackLayout Spacing="4">
+                                        <Label Text="Statut Mesh" FontSize="11" TextColor="#64748B" />
+                                        <Label Text="Actif &amp; Écoute" FontSize="13" FontAttributes="Bold" TextColor="#16A34A" />
+                                    </VerticalStackLayout>
+                                </Frame>
+
+                                <Frame BackgroundColor="#F8FAFC" BorderColor="#E2E8F0" CornerRadius="12" Padding="12">
+                                    <VerticalStackLayout Spacing="4">
+                                        <Label Text="Mode Sync" FontSize="11" TextColor="#64748B" />
+                                        <Label Text="Automatique" FontSize="13" FontAttributes="Bold" TextColor="#7C3AED" />
+                                    </VerticalStackLayout>
+                                </Frame>
+                            </Grid>
+                        </VerticalStackLayout>
+                    </Frame>
+
+                </VerticalStackLayout>
+            </ScrollView>
+
+            <!-- ==================================================== -->
+            <!-- ONGLET 1 : CHATS (DISCUSSIONS PRIVÉES DIRECTES)      -->
+            <!-- ==================================================== -->
+            <Grid x:Name="TabChats" IsVisible="False" RowDefinitions="Auto, *" Padding="16, 12, 16, 16" RowSpacing="12">
+                <Grid Grid.Row="0" ColumnDefinitions="*, Auto" VerticalOptions="Center">
+                    <Label Grid.Column="0" Text="Discussions Privées" FontSize="20" FontAttributes="Bold" TextColor="#0F172A" />
+                    <Button Grid.Column="1"
+                            Text="+ Scanner"
+                            FontSize="12"
+                            BackgroundColor="#2563EB"
+                            TextColor="#FFFFFF"
+                            FontAttributes="Bold"
+                            Padding="12, 6"
+                            CornerRadius="8"
+                            Clicked="OnAddContactClicked" />
+                </Grid>
+
+                <CollectionView Grid.Row="1"
+                                ItemsSource="{Binding PrivateChats}"
+                                SelectionMode="None">
+                    <CollectionView.EmptyView>
+                        <VerticalStackLayout Spacing="16" HorizontalOptions="Center" VerticalOptions="Center" Margin="20, 60">
+                            <Label Text="💬" FontSize="48" HorizontalOptions="Center" />
+                            <Label Text="Aucune discussion privée" FontSize="18" FontAttributes="Bold" TextColor="#0F172A" HorizontalOptions="Center" />
+                            <Label Text="Scannez le QR Code d'un ami pour ouvrir un canal direct chiffré par pigeon voyageur !"
+                                   FontSize="13" TextColor="#64748B" HorizontalTextAlignment="Center" />
+                            <Button Text="Scanner un QR Code"
+                                    BackgroundColor="#2563EB"
+                                    TextColor="#FFFFFF"
+                                    FontAttributes="Bold"
+                                    CornerRadius="10"
+                                    Margin="0, 10, 0, 0"
+                                    Clicked="OnAddContactClicked" />
+                        </VerticalStackLayout>
+                    </CollectionView.EmptyView>
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate x:DataType="models:Contact">
+                            <Frame BackgroundColor="#FFFFFF" BorderColor="#E2E8F0" CornerRadius="14" Padding="14" Margin="0, 4">
+                                <Frame.GestureRecognizers>
+                                    <TapGestureRecognizer Tapped="OnConversationTapped" CommandParameter="{Binding .}" />
+                                </Frame.GestureRecognizers>
+                                <Grid ColumnDefinitions="Auto, *, Auto" ColumnSpacing="12">
+                                    <Frame Grid.Column="0" WidthRequest="44" HeightRequest="44" CornerRadius="22" BackgroundColor="#EFF6FF" Padding="0" BorderColor="#DBEAFE">
+                                        <Label Text="{Binding Icon}" FontSize="22" HorizontalOptions="Center" VerticalOptions="Center" />
+                                    </Frame>
+
+                                    <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Spacing="2">
+                                        <Label Text="{Binding DisplayName}" FontSize="16" FontAttributes="Bold" TextColor="#0F172A" />
+                                        <Label Text="{Binding PublicKey}" FontSize="11" TextColor="#64748B" LineBreakMode="TailTruncation" />
+                                    </VerticalStackLayout>
+
+                                    <Label Grid.Column="2" Text="›" FontSize="22" TextColor="#94A3B8" VerticalOptions="Center" />
+                                </Grid>
+                            </Frame>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+            </Grid>
+
+            <!-- ==================================================== -->
+            <!-- ONGLET 2 : PLACE PUBLIQUE (BABILLARD CAMPUS)         -->
+            <!-- ==================================================== -->
+            <ScrollView x:Name="TabCampus" IsVisible="False" Padding="16, 12, 16, 16">
+                <VerticalStackLayout Spacing="16">
+                    <Frame BackgroundColor="#FFFFFF" BorderColor="#E2E8F0" CornerRadius="18" Padding="18">
+                        <VerticalStackLayout Spacing="14">
+                            <Grid ColumnDefinitions="Auto, *">
+                                <Label Grid.Column="0" Text="🏛️" FontSize="32" Margin="0,0,12,0" VerticalOptions="Center" />
+                                <VerticalStackLayout Grid.Column="1" VerticalOptions="Center">
+                                    <Label Text="Place Publique" FontSize="22" FontAttributes="Bold" TextColor="#0F172A" />
+                                    <Label Text="Babillard libre &amp; ouvert du campus" FontSize="12" TextColor="#7C3AED" FontAttributes="Bold" />
+                                </VerticalStackLayout>
+                            </Grid>
+
+                            <Label Text="Ce canal est partagé avec tous les étudiants à portée de mesh. Vos messages voyagent anonymement de téléphone en téléphone à travers les amphis, couloirs et cafétérias sans Internet ni antenne relais !"
+                                   FontSize="13" TextColor="#64748B" LineHeight="1.3" />
+
+                            <Button Text="Entrer dans la Place Publique 💬"
+                                    BackgroundColor="#7C3AED"
+                                    TextColor="#FFFFFF"
+                                    FontAttributes="Bold"
+                                    CornerRadius="12"
+                                    HeightRequest="50"
+                                    Clicked="OnOpenCampusBoardClicked" />
+                        </VerticalStackLayout>
+                    </Frame>
+
+                    <!-- Règles du babillard -->
+                    <Frame BackgroundColor="#F8FAFC" BorderColor="#E2E8F0" CornerRadius="14" Padding="14">
+                        <VerticalStackLayout Spacing="8">
+                            <Label Text="💡 Comment ça marche ?" FontSize="14" FontAttributes="Bold" TextColor="#0F172A" />
+                            <Label Text="• Chaque étudiant relaie les annonces publiques lors de ses déplacements." FontSize="12" TextColor="#64748B" />
+                            <Label Text="• Zéro consommation de data mobile." FontSize="12" TextColor="#64748B" />
+                            <Label Text="• Idéal pour les événements, trouvailles, alertes et annonces de cours." FontSize="12" TextColor="#64748B" />
+                        </VerticalStackLayout>
+                    </Frame>
+                </VerticalStackLayout>
+            </ScrollView>
+
+            <!-- ==================================================== -->
+            <!-- ONGLET 3 : GARDE-ROBE (PERSONNALISATION PIGEON)      -->
+            <!-- ==================================================== -->
+            <ScrollView x:Name="TabWardrobe" IsVisible="False" Padding="16, 12, 16, 16">
+                <VerticalStackLayout Spacing="16">
+
+                    <!-- Carte de présentation Pigeon -->
+                    <Frame BackgroundColor="#FFFFFF" BorderColor="#E2E8F0" CornerRadius="18" Padding="20">
+                        <VerticalStackLayout Spacing="10" HorizontalOptions="Center">
+                            <Label Text="🕊️" FontSize="56" HorizontalOptions="Center" />
+                            <Label Text="{Binding PigeonName}" FontSize="22" FontAttributes="Bold" TextColor="#0F172A" HorizontalOptions="Center" />
+                            
+                            <Frame BackgroundColor="#F5F3FF" BorderColor="#DDD6FE" CornerRadius="12" Padding="10, 4" HorizontalOptions="Center">
+                                <Label Text="{Binding PigeonRank}" FontSize="12" FontAttributes="Bold" TextColor="#7C3AED" />
+                            </Frame>
+
+                            <Label Text="{Binding ExperiencePoints, StringFormat='Expérience : {0} XP'}" FontSize="13" TextColor="#16A34A" FontAttributes="Bold" HorizontalOptions="Center" />
+                        </VerticalStackLayout>
+                    </Frame>
+
+                    <!-- Formulaire de personnalisation -->
+                    <Frame BackgroundColor="#FFFFFF" BorderColor="#E2E8F0" CornerRadius="18" Padding="16">
+                        <VerticalStackLayout Spacing="14">
+                            <Label Text="Personnalisation" FontSize="16" FontAttributes="Bold" TextColor="#0F172A" />
+
+                            <!-- Nom du pigeon -->
+                            <VerticalStackLayout Spacing="4">
+                                <Label Text="Nom de ton Pigeon :" FontSize="12" TextColor="#64748B" />
+                                <Entry x:Name="PigeonNameEntry"
+                                       Text="{Binding PigeonName}"
+                                       Placeholder="Ex: AileRapide"
+                                       TextColor="#0F172A"
+                                       PlaceholderColor="#94A3B8"
+                                       BackgroundColor="#F8FAFC"
+                                       HeightRequest="44" />
+                            </VerticalStackLayout>
+
+                            <!-- Couleur des plumes -->
+                            <VerticalStackLayout Spacing="4">
+                                <Label Text="Couleur du plumage :" FontSize="12" TextColor="#64748B" />
+                                <Picker x:Name="FeatherPicker"
+                                        SelectedItem="{Binding FeatherColor}"
+                                        TextColor="#0F172A"
+                                        TitleColor="#64748B"
+                                        BackgroundColor="#F8FAFC"
+                                        HeightRequest="44">
+                                    <Picker.ItemsSource>
+                                        <x:Array Type="{x:Type x:String}">
+                                            <x:String>Bleu Nuit</x:String>
+                                            <x:String>Blanc Nuage</x:String>
+                                            <x:String>Émeraude</x:String>
+                                            <x:String>Violet Royal</x:String>
+                                            <x:String>Or Astral</x:String>
+                                        </x:Array>
+                                    </Picker.ItemsSource>
+                                </Picker>
+                            </VerticalStackLayout>
+
+                            <!-- Accessoire -->
+                            <VerticalStackLayout Spacing="4">
+                                <Label Text="Accessoire :" FontSize="12" TextColor="#64748B" />
+                                <Picker x:Name="AccessoryPicker"
+                                        SelectedItem="{Binding Accessory}"
+                                        TextColor="#0F172A"
+                                        TitleColor="#64748B"
+                                        BackgroundColor="#F8FAFC"
+                                        HeightRequest="44">
+                                    <Picker.ItemsSource>
+                                        <x:Array Type="{x:Type x:String}">
+                                            <x:String>Aucun</x:String>
+                                            <x:String>Casquette de facteur</x:String>
+                                            <x:String>Lunettes aviateur</x:String>
+                                            <x:String>Écharpe rouge</x:String>
+                                            <x:String>Lettre dorée scellée</x:String>
+                                        </x:Array>
+                                    </Picker.ItemsSource>
+                                </Picker>
+                            </VerticalStackLayout>
+
+                            <Button Text="Enregistrer mon Pigeon"
+                                    BackgroundColor="#7C3AED"
+                                    TextColor="#FFFFFF"
+                                    FontAttributes="Bold"
+                                    CornerRadius="12"
+                                    HeightRequest="48"
+                                    Clicked="OnSavePigeonClicked" />
+                        </VerticalStackLayout>
+                    </Frame>
+
+                </VerticalStackLayout>
+            </ScrollView>
+
+        </Grid>
+
+        <!-- ======================================================== -->
+        <!-- BARRE DE NAVIGATION RIVE (ANIMATION 60 FPS INTERACTIVE)   -->
+        <!-- ======================================================== -->
+        <controls:RiveBottomBar Grid.Row="2"
+                                x:Name="BottomNavBar"
+                                HeightRequest="165"
+                                Margin="0, -35, 0, 0"
+                                BackgroundColor="Transparent"
+                                SelectedTab="{Binding SelectedTab, Mode=TwoWay}"
+                                TabChanged="OnBottomBarTabChanged" />
+
+    </Grid>
+
+</ContentPage>

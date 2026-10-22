@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="TellMe.App.Views.QrDisplayPage"
+             Title="Mon QR Code"
+             BackgroundColor="#121214">
+
+    <VerticalStackLayout Padding="24" Spacing="20" VerticalOptions="Center" HorizontalOptions="Center">
+
+        <Label x:Name="NameLabel"
+               FontSize="22"
+               FontAttributes="Bold"
+               TextColor="#FFFFFF"
+               HorizontalOptions="Center" />
+
+        <Label x:Name="PigeonLabel"
+               FontSize="15"
+               TextColor="#BF5AF2"
+               HorizontalOptions="Center" />
+
+        <!-- L'image du QR Code générée en mémoire -->
+        <Frame BackgroundColor="#FFFFFF" CornerRadius="16" Padding="12" HasShadow="True">
+            <Image x:Name="QrImage"
+                   WidthRequest="260"
+                   HeightRequest="260" />
+        </Frame>
+
+        <Label Text="Présente ce QR Code à ton ami pour qu'il te scanne avec TellMe."
+               FontSize="13"
+               TextColor="#8E8E93"
+               HorizontalTextAlignment="Center"
+               Margin="20,0" />
+
+        <Button Text="Fermer"
+                BackgroundColor="#2C2C2E"
+                TextColor="#FFFFFF"
+                CornerRadius="8"
+                WidthRequest="140"
+                Clicked="OnCloseClicked" />
+
+    </VerticalStackLayout>
+
+</ContentPage>

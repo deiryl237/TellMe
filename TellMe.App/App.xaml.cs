@@ -1,4 +1,4 @@
-﻿namespace TellMe.App;
+namespace TellMe.App;
 
 public partial class App : Application
 {
@@ -6,6 +6,7 @@ public partial class App : Application
 	{
 		InitializeComponent();
 
+		UserAppTheme = AppTheme.Light;
 		MainPage = new AppShell();
 	}
 }

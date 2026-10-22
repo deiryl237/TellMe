@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:TellMe.App.ViewModels"
+             x:Class="TellMe.App.Views.ChatPage"
+             x:DataType="vm:ChatViewModel"
+             Title="{Binding Title}"
+             BackgroundColor="#F8FAFC">
+
+    <Grid RowDefinitions="*, Auto" Padding="12" RowSpacing="8">
+
+        <!-- 1. Liste des bulles de messages -->
+        <CollectionView x:Name="MessagesCollectionView"
+                        Grid.Row="0"
+                        ItemsSource="{Binding Messages}"
+                        Scrolled="OnCollectionViewScrolled">
+            <CollectionView.Header>
+                <Grid Padding="0, 6" IsVisible="{Binding IsLoadingOlder}">
+                    <ActivityIndicator IsRunning="{Binding IsLoadingOlder}"
+                                       Color="#7C3AED"
+                                       HeightRequest="24"
+                                       WidthRequest="24"
+                                       HorizontalOptions="Center" />
+                </Grid>
+            </CollectionView.Header>
+            <CollectionView.EmptyView>
+                <Label Text="Aucun message pour l'instant. Dis bonjour ! 🕊️"
+                       TextColor="#64748B"
+                       HorizontalOptions="Center"
+                       VerticalOptions="Center" />
+            </CollectionView.EmptyView>
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="vm:ChatMessageItem">
+                    <VerticalStackLayout Padding="0, 3">
+                        <Frame CornerRadius="16"
+                               Padding="14, 10"
+                               MaximumWidthRequest="300"
+                               BorderColor="#E2E8F0"
+                               HasShadow="False">
+                            <Frame.Triggers>
+                                <!-- Si c'est mon message : bulle violette à droite -->
+                                <DataTrigger TargetType="Frame" Binding="{Binding IsMine}" Value="True">
+                                    <Setter Property="HorizontalOptions" Value="End" />
+                                    <Setter Property="BackgroundColor" Value="#7C3AED" />
+                                    <Setter Property="BorderColor" Value="Transparent" />
+                                </DataTrigger>
+                                <!-- Si c'est un message reçu : bulle blanche à gauche -->
+                                <DataTrigger TargetType="Frame" Binding="{Binding IsMine}" Value="False">
+                                    <Setter Property="HorizontalOptions" Value="Start" />
+                                    <Setter Property="BackgroundColor" Value="#FFFFFF" />
+                                    <Setter Property="BorderColor" Value="#E2E8F0" />
+                                </DataTrigger>
+                            </Frame.Triggers>
+
+                            <VerticalStackLayout Spacing="4">
+                                <!-- Nom de l'expéditeur (affiché seulement si ce n'est pas moi) -->
+                                <Label Text="{Binding SenderName}"
+                                       FontSize="11"
+                                       TextColor="#7C3AED"
+                                       FontAttributes="Bold">
+                                    <Label.Triggers>
+                                        <DataTrigger TargetType="Label" Binding="{Binding IsMine}" Value="True">
+                                            <Setter Property="IsVisible" Value="False" />
+                                        </DataTrigger>
+                                    </Label.Triggers>
+                                </Label>
+
+                                <!-- Contenu déchiffré du message -->
+                                <Label Text="{Binding Text}"
+                                       FontSize="15">
+                                    <Label.Triggers>
+                                        <DataTrigger TargetType="Label" Binding="{Binding IsMine}" Value="True">
+                                            <Setter Property="TextColor" Value="#FFFFFF" />
+                                        </DataTrigger>
+                                        <DataTrigger TargetType="Label" Binding="{Binding IsMine}" Value="False">
+                                            <Setter Property="TextColor" Value="#0F172A" />
+                                        </DataTrigger>
+                                    </Label.Triggers>
+                                </Label>
+
+                                <!-- Heure -->
+                                <Label Text="{Binding TimeString}"
+                                       FontSize="10"
+                                       HorizontalOptions="End">
+                                    <Label.Triggers>
+                                        <DataTrigger TargetType="Label" Binding="{Binding IsMine}" Value="True">
+                                            <Setter Property="TextColor" Value="#E9D5FF" />
+                                        </DataTrigger>
+                                        <DataTrigger TargetType="Label" Binding="{Binding IsMine}" Value="False">
+                                            <Setter Property="TextColor" Value="#94A3B8" />
+                                        </DataTrigger>
+                                    </Label.Triggers>
+                                </Label>
+                            </VerticalStackLayout>
+                        </Frame>
+                    </VerticalStackLayout>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+
+        <!-- 2. Zone de saisie et bouton d'envoi -->
+        <Grid Grid.Row="1" ColumnDefinitions="*, Auto" ColumnSpacing="8" Padding="0, 6">
+            <Frame Grid.Column="0"
+                   BackgroundColor="#FFFFFF"
+                   BorderColor="#CBD5E1"
+                   CornerRadius="24"
+                   Padding="14, 2"
+                   HasShadow="False">
+                <Entry Placeholder="Écris ton message..."
+                       PlaceholderColor="#94A3B8"
+                       Text="{Binding InputText, Mode=TwoWay}"
+                       TextColor="#0F172A"
+                       BackgroundColor="Transparent"
+                       Completed="OnSendClicked" />
+            </Frame>
+
+            <Button Grid.Column="1"
+                    Text="Envoyer"
+                    BackgroundColor="#7C3AED"
+                    TextColor="#FFFFFF"
+                    FontAttributes="Bold"
+                    CornerRadius="22"
+                    HeightRequest="46"
+                    Padding="16, 0"
+                    Clicked="OnSendClicked" />
+        </Grid>
+
+    </Grid>
+
+</ContentPage>

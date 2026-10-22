@@ -18,6 +18,7 @@ public class SyncPacket{
 
 public class ContactRequest{
     public string RequesterId{get;set;} = string.Empty;
+    public string TargetId{get;set;} = string.Empty;
     public string SharedAesKey{get;set;} = string.Empty;
     public string Name{get;set;} = string.Empty;
     public string Pigeon{get;set;} = string.Empty;
@@ -28,23 +29,20 @@ public class ContactRequest{
 
     }
 
-    public ContactRequest(Account requesterAccount){
-        using var aes = Aes.Create();
-        byte[] secretKey = aes.Key; // cle aes
+    public ContactRequest(Account requesterAccount, string targetId = ""){
         SharedAesKey = CryptoService.GenerateAesKeys();
 
         RequesterId = requesterAccount.Id;
+        TargetId = targetId;
         Name = requesterAccount.DisplayName;
         Pigeon = requesterAccount.PigeonName;
 
-        RequestHash = ComputerHash(RequesterId,SharedAesKey,Name,Pigeon);
+        RequestHash = ComputerHash(RequesterId,SharedAesKey,Name,Pigeon,TargetId);
         RequestSignature = CryptoService.Sign(RequestHash,requesterAccount.PrivateKey);
-
-
     }
 
-    private string ComputerHash(string R,string S,string N, string P){
-        string h = $"{R}|{S}|{N}|{P}" ;
+    private string ComputerHash(string R,string S,string N, string P, string T = ""){
+        string h = string.IsNullOrEmpty(T) ? $"{R}|{S}|{N}|{P}" : $"{R}|{S}|{N}|{P}|{T}";
         byte[] hEncoded = Encoding.UTF8.GetBytes(h);
         byte[] hashed = SHA256.HashData(hEncoded);
         string hFinal = Convert.ToHexString(hashed);

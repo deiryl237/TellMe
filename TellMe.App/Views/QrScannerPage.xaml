@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:zxing="clr-namespace:ZXing.Net.Maui.Controls;assembly=ZXing.Net.MAUI.Controls"
+             x:Class="TellMe.App.Views.QrScannerPage"
+             Title="Scanner un ami"
+             BackgroundColor="#000000">
+
+    <Grid RowDefinitions="*, Auto">
+        <!-- Le flux vidéo de la caméra -->
+        <zxing:CameraBarcodeReaderView Grid.Row="0"
+                                       x:Name="BarcodeReader"
+                                       BarcodesDetected="OnBarcodesDetected" />
+
+        <!-- En bas : Consigne et Annulation -->
+        <VerticalStackLayout Grid.Row="1" Padding="20" Spacing="12" BackgroundColor="#121214">
+            <Label Text="Pointe l'objectif vers le QR Code TellMe de ton ami."
+                   TextColor="#8E8E93"
+                   FontSize="13"
+                   HorizontalOptions="Center" />
+
+            <Button Text="Annuler"
+                    BackgroundColor="#2C2C2E"
+                    TextColor="#FFFFFF"
+                    CornerRadius="8"
+                    Clicked="OnCancelClicked" />
+        </VerticalStackLayout>
+    </Grid>
+
+</ContentPage>

@@ -14,6 +14,11 @@ public class TellMeEngine{
     public MessageStore _store{get;set;}
     private ContactQrCard? _pendingCard;
     private ContactRequest? _pendingRequest;
+    private ContactResponse? _pendingResponse;
+
+    private readonly HashSet<string> _sentPeersForPendingRequest = new(StringComparer.OrdinalIgnoreCase);
+
+    public event Action<Contact>? ContactAdded;
 
     public TellMeEngine(TellMeDatabase database, ITransport transport){
 
@@ -21,6 +26,16 @@ public class TellMeEngine{
         _transport = transport;
         _store = new MessageStore();
         _syncEngine = new SyncEngine(_store,_transport);
+        _syncEngine.MyAccountIdProvider = () => _myaccount?.Id;
+        _syncEngine.LogAction = (msg) =>
+        {
+            #if ANDROID
+            global::Android.Util.Log.Info("TellMe", $"[Sync] {msg}");
+            #else
+            System.Diagnostics.Debug.WriteLine($"[Sync] {msg}");
+            #endif
+        };
+        _syncEngine.SyncCompleted += () => _transport.OnSyncCompleted();
         _store.MessageAdded += async (msg) =>{
             bool isPersonal = _myaccount != null && (msg.To == _myaccount.Id || msg.From == _myaccount.Id);
             await _database.SaveMessageAsync(msg,isPersonal,isOrphan: false); //on ecoute l'event messageadded du store, à chaque fois 
@@ -39,7 +54,27 @@ public class TellMeEngine{
                         SharedAesKey = _pendingRequest.SharedAesKey
                     };
                     await _database.SaveContactAsync(newContact);
+                    ContactAdded?.Invoke(newContact);
+                    _pendingCard = null;
+                    _pendingRequest = null;
+                    lock (_sentPeersForPendingRequest)
+                    {
+                        _sentPeersForPendingRequest.Clear();
+                    }
                 }
+            }
+        };
+
+        _transport.PeerConnected += async () =>
+        {
+            if (_pendingRequest != null)
+            {
+                await _syncEngine.SendContactRequestAsync(_pendingRequest);
+            }
+            if (_pendingResponse != null)
+            {
+                await _syncEngine.SendContactResponseAsync(_pendingResponse);
+                _pendingResponse = null;
             }
         };
 
@@ -57,6 +92,13 @@ public class TellMeEngine{
         foreach (var stored in messages){
             _store.AddMessage(stored.ToMeshMessage());//on les charge le store
         }
+
+        if (_myaccount != null && !string.IsNullOrEmpty(_myaccount.Id))
+        {
+            var hash = System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(_myaccount.Id)).Take(4).ToArray();
+            _transport.SetMyAccountHash(hash);
+        }
+
         await _transport.StartAsync();
 
     }
@@ -126,8 +168,29 @@ public class TellMeEngine{
         if (_myaccount == null) throw new InvalidOperationException("TellMeEngine non initialisé");
 
         _pendingCard = card;
-        _pendingRequest = await _syncEngine.SendContactRequestAsync(_myaccount);
-            return _pendingRequest;
+        _pendingRequest = new ContactRequest(_myaccount, card.id);
+        lock (_sentPeersForPendingRequest)
+        {
+            _sentPeersForPendingRequest.Clear();
+        }
+        _transport.ResetCooldown();
+
+        // Enclencher la priorité directe vers l'ami scanné (recherche par empreinte BLE / RSSI et retry rapide)
+        await _transport.PrioritizeTargetAsync(card.BluetoothAddress, card.id);
+
+        if (_transport.IsConnected)
+        {
+            string? peerAddr = _transport.ConnectedPeerAddress;
+            lock (_sentPeersForPendingRequest)
+            {
+                if (!string.IsNullOrEmpty(peerAddr))
+                {
+                    _sentPeersForPendingRequest.Add(peerAddr);
+                }
+            }
+            await _syncEngine.SendContactRequestAsync(_pendingRequest);
+        }
+        return _pendingRequest;
     }
 
     public async Task AcceptContactRequestAsync(ContactRequest request){
@@ -142,8 +205,15 @@ public class TellMeEngine{
             SharedAesKey = request.SharedAesKey
         };
         await _database.SaveContactAsync(newContact);
-        // 2. Envoyer la réponse signée par notre compte
-        await _syncEngine.SendContactResponseAsync(request.RequestHash, true, _myaccount);
+        ContactAdded?.Invoke(newContact);
+
+        // 2. Mémoriser la réponse signée pour renvoi garanti si déconnexion
+        var response = new ContactResponse(request.RequestHash, true, _myaccount);
+        _pendingResponse = response;
+        _transport.ResetCooldown();
+
+        // 3. Envoyer la réponse
+        await _syncEngine.SendContactResponseAsync(response);
     }
 
 }

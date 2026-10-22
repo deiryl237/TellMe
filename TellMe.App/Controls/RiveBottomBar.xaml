@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:controls="clr-namespace:TellMe.App.Controls"
+             x:Class="TellMe.App.Controls.RiveBottomBar"
+             HeightRequest="165"
+             BackgroundColor="Transparent">
+
+    <Grid HeightRequest="165" BackgroundColor="Transparent">
+
+        <!-- 1. Vue Rive native animée (arrière-plan interactif 60 FPS) -->
+        <controls:RiveBottomBarView x:Name="RiveView"
+                                    HeightRequest="165"
+                                    HorizontalOptions="Fill"
+                                    VerticalOptions="Fill" />
+
+        <!-- 2. Grille tactile invisible à 4 colonnes (Accueil, Chats, Public, Garde-Robe) -->
+        <Grid ColumnDefinitions="*, *, *, *"
+              HeightRequest="165"
+              BackgroundColor="Transparent"
+              HorizontalOptions="Fill"
+              VerticalOptions="Fill">
+
+            <!-- Colonne 0 : ACCUEIL -->
+            <Grid Grid.Column="0" BackgroundColor="Transparent">
+                <Grid.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="OnTab0Tapped" />
+                </Grid.GestureRecognizers>
+            </Grid>
+
+            <!-- Colonne 1 : CHATS -->
+            <Grid Grid.Column="1" BackgroundColor="Transparent">
+                <Grid.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="OnTab1Tapped" />
+                </Grid.GestureRecognizers>
+            </Grid>
+
+            <!-- Colonne 2 : PLACE PUBLIQUE -->
+            <Grid Grid.Column="2" BackgroundColor="Transparent">
+                <Grid.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="OnTab2Tapped" />
+                </Grid.GestureRecognizers>
+            </Grid>
+
+            <!-- Colonne 3 : GARDE ROBE -->
+            <Grid Grid.Column="3" BackgroundColor="Transparent">
+                <Grid.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="OnTab3Tapped" />
+                </Grid.GestureRecognizers>
+            </Grid>
+
+        </Grid>
+    </Grid>
+
+</ContentView>

@@ -17,12 +17,15 @@ public string Signature { get;set; } = string.Empty;
 
 
 
-    public MeshMessage(string message,string from,string to,string[] parents,string signature = ""){
+    public long Timestamp { get; init; }
+
+    public MeshMessage(string message,string from,string to,string[] parents,string signature = "", long timestamp = 0){
 
          Message = message;
          From = from;
          To = to;
          Parents = parents != null ? parents.OrderBy(p => p).ToArray() : Array.Empty<string>();
+         Timestamp = timestamp > 0 ? timestamp : DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
          Hash = ComputerHash(Message,From,To,string.Join(",", Parents));
          Signature = signature;
 
@@ -36,9 +39,9 @@ public string Signature { get;set; } = string.Empty;
         return hFinal;
     }
 
-    public static MeshMessage CreateSigned(string message, string to, string[] parents,string publicKey, string privateKey){
+    public static MeshMessage CreateSigned(string message, string to, string[] parents,string publicKey, string privateKey, long timestamp = 0){
 
-        MeshMessage msg = new MeshMessage(message,publicKey,to,parents);
+        MeshMessage msg = new MeshMessage(message,publicKey,to,parents, timestamp: timestamp);
         string sign = CryptoService.Sign(msg.Hash,privateKey);
         msg.Signature = sign ;
 

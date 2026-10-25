@@ -122,9 +122,8 @@ Les cas de tests couvrent :
 
 Pour une analyse exhaustive des fondements théoriques, des choix d'ingénierie, des post-mortems d'incidents techniques et des spécifications d'extension multimédia (PDF, images, chunking Merkle), consulter :
 
-* [docs/MEMOIRE_TECHNIQUE_FOKAM_WILFRIED.docx](file:///c:/Users/UltraBook%203.1/Appmobile/TellMe/docs/MEMOIRE_TECHNIQUE_FOKAM_WILFRIED.docx) (Mémoire officiel au format Word)
-* [docs/MEMOIRE_TECHNIQUE.md](file:///c:/Users/UltraBook%203.1/Appmobile/TellMe/docs/MEMOIRE_TECHNIQUE.md) (Version Markdown)
-* [docs/SIMULATION_RESULTS.md](file:///c:/Users/UltraBook%203.1/Appmobile/TellMe/docs/SIMULATION_RESULTS.md) (Résultats détaillés des 25 simulations de campus)
+
+* [docs/MEMOIRE_TECHNIQUE.md](file:///c:/Users/UltraBook%203.1/Appmobile/TellMe/docs/MEMOIRE_TECHNIQUE.md) 
 
 ---
 

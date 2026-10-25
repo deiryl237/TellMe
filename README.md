@@ -129,4 +129,11 @@ Pour une analyse exhaustive des fondements théoriques, des choix d'ingénierie,
 
 ## 7. Licence
 
-Ce projet est distribué sous licence MIT. Consulter le fichier `LICENSE` pour les conditions applicables.
+Ce projet est distribué sous licence **GNU General Public License v3.0 (GNU GPLv3)**.
+
+En vertu de cette licence libre à réciprocité stricte (copyleft fort) :
+* Tout utilisateur est libre de copier, distribuer, étudier et modifier le code source.
+* **Obligation de réciprocité :** Toute personne ou organisation qui modifie, intègre ou distribue un produit dérivé fondé sur TellMe a l'obligation légale stricte de publier l'intégralité du code source de son produit sous licence GNU GPLv3.
+* La privatisation commerciale à code fermé est formellement interdite.
+
+Consulter le fichier [LICENSE](file:///c:/Users/UltraBook%203.1/Appmobile/TellMe/LICENSE) pour l'intégralité des termes et conditions juridiques.

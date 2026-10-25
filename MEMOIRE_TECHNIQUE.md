@@ -156,7 +156,7 @@ L'algorithme exécuté lors de l'appel à `AddMessage(M)` procède selon la séq
 
 ```text
 Entrée : Message M
-Sortie : Booléen indiquant si le graphe local a progressé
+Sortie : Booléen indiquant si le graphe local a progressé (le booléen est utilisé dans les test, mais dans le code a été remplacé par l'évènement MessageAdded?.Invoke(message))
 
 1. Si M.Hash ∈ MessageCollection ou M.Hash ∈ Buffer :
      Retourner Faux (Déduplication / Idempotence).

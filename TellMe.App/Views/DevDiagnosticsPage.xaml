@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewmodels="clr-namespace:TellMe.App.ViewModels"
+             x:Class="TellMe.App.Views.DevDiagnosticsPage"
+             x:DataType="viewmodels:MainViewModel"
+             Title="Diagnostics Réseau Mesh"
+             BackgroundColor="#FAF7F2">
+
+    <Grid RowDefinitions="Auto, *" Padding="20, 16, 20, 20">
+
+        <!-- En-tête avec bouton retour/fermeture -->
+        <Grid Grid.Row="0" ColumnDefinitions="*, Auto" Margin="0, 0, 0, 16" VerticalOptions="Center">
+            <VerticalStackLayout Grid.Column="0" Spacing="2">
+                <Label Text="Mode Développeur" FontSize="20" FontAttributes="Bold" TextColor="#231F1E" />
+                <Label Text="Visualiseur des connexions BLE &amp; Mesh DTN" FontSize="12" TextColor="#7C3AED" FontAttributes="Bold" />
+            </VerticalStackLayout>
+            <Border Grid.Column="1"
+                    WidthRequest="40"
+                    HeightRequest="40"
+                    StrokeShape="RoundRectangle 20"
+                    Stroke="#E5DFD7"
+                    BackgroundColor="#FFFFFF"
+                    VerticalOptions="Center">
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="OnCloseClicked" />
+                </Border.GestureRecognizers>
+                <Image Source="icon_close.svg" WidthRequest="18" HeightRequest="18" HorizontalOptions="Center" VerticalOptions="Center" />
+            </Border>
+        </Grid>
+
+        <!-- Contenu des diagnostics -->
+        <ScrollView Grid.Row="1">
+            <VerticalStackLayout Spacing="16">
+
+                <!-- Carte d'état de l'appareil & nœud -->
+                <Border BackgroundColor="#FFFFFF" Stroke="#E5DFD7" StrokeShape="RoundRectangle 18" Padding="16">
+                    <VerticalStackLayout Spacing="10">
+                        <Grid ColumnDefinitions="Auto, *">
+                            <Image Grid.Column="0" Source="icon_radar.svg" WidthRequest="20" HeightRequest="20" Margin="0,0,8,0" VerticalOptions="Center" />
+                            <Label Grid.Column="1" Text="État du Nœud Mesh" FontSize="15" FontAttributes="Bold" TextColor="#231F1E" VerticalOptions="Center" />
+                        </Grid>
+
+                        <Grid ColumnDefinitions="*, *" ColumnSpacing="12" Margin="0, 4, 0, 0">
+                            <Border BackgroundColor="#FAF7F2" Stroke="#E5DFD7" StrokeShape="RoundRectangle 12" Padding="10">
+                                <VerticalStackLayout Spacing="2">
+                                    <Label Text="Statut BLE" FontSize="11" TextColor="#64748B" />
+                                    <Label Text="{Binding StatusText}" FontSize="12" FontAttributes="Bold" TextColor="#16A34A" LineBreakMode="TailTruncation" />
+                                </VerticalStackLayout>
+                            </Border>
+
+                            <Border BackgroundColor="#FAF7F2" Stroke="#E5DFD7" StrokeShape="RoundRectangle 12" Padding="10">
+                                <VerticalStackLayout Spacing="2">
+                                    <Label Text="Pigeon Actif" FontSize="11" TextColor="#64748B" />
+                                    <Label Text="{Binding PigeonName}" FontSize="12" FontAttributes="Bold" TextColor="#7C3AED" LineBreakMode="TailTruncation" />
+                                </VerticalStackLayout>
+                            </Border>
+                        </Grid>
+
+                        <VerticalStackLayout Spacing="2" Margin="0, 4, 0, 0">
+                            <Label Text="Identifiant public (ECDSA P-256) :" FontSize="11" TextColor="#64748B" />
+                            <Label Text="{Binding PublicKey}" FontSize="10" TextColor="#334155" LineBreakMode="CharacterWrap" />
+                        </VerticalStackLayout>
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- Console temps réel des connexions & paquets -->
+                <Border BackgroundColor="#231F1E" Stroke="#1E1B1A" StrokeShape="RoundRectangle 18" Padding="14">
+                    <VerticalStackLayout Spacing="10">
+                        <Grid ColumnDefinitions="Auto, *, Auto">
+                            <Image Grid.Column="0" Source="icon_terminal.svg" WidthRequest="18" HeightRequest="18" Margin="0,0,8,0" VerticalOptions="Center" />
+                            <Label Grid.Column="1" Text="Console de Connexion (Live)" FontSize="13" FontAttributes="Bold" TextColor="#FAF7F2" VerticalOptions="Center" />
+                            <Button Grid.Column="2"
+                                    Text="Effacer"
+                                    FontSize="10"
+                                    BackgroundColor="#3D3835"
+                                    TextColor="#FAF7F2"
+                                    Padding="10, 4"
+                                    CornerRadius="8"
+                                    HeightRequest="32"
+                                    Clicked="OnClearLogsClicked" />
+                        </Grid>
+
+                        <!-- Liste déroulante des logs bruts -->
+                        <CollectionView ItemsSource="{Binding DevLogs}" HeightRequest="320">
+                            <CollectionView.EmptyView>
+                                <Label Text="Aucun événement réseau pour le moment..." FontSize="11" TextColor="#94A3B8" FontAttributes="Italic" HorizontalOptions="Center" Margin="0, 20" />
+                            </CollectionView.EmptyView>
+                            <CollectionView.ItemTemplate>
+                                <DataTemplate x:DataType="x:String">
+                                    <Label Text="{Binding .}" FontSize="11" TextColor="#A7F3D0" FontFamily="Monospace" Margin="0, 2" LineBreakMode="CharacterWrap" />
+                                </DataTemplate>
+                            </CollectionView.ItemTemplate>
+                        </CollectionView>
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- Bouton d'action manuelle pour forcer une rotation mesh -->
+                <Button Text="Forcer la Synchronisation Flash"
+                        BackgroundColor="#231F1E"
+                        TextColor="#FAF7F2"
+                        BorderColor="#231F1E"
+                        BorderWidth="1.5"
+                        FontAttributes="Bold"
+                        CornerRadius="14"
+                        HeightRequest="48"
+                        Clicked="OnForceSyncClicked">
+                    <Button.Shadow>
+                        <Shadow Brush="#231F1E" Offset="2, 3" Radius="0" Opacity="0.2" />
+                    </Button.Shadow>
+                </Button>
+
+            </VerticalStackLayout>
+        </ScrollView>
+
+    </Grid>
+
+</ContentPage>

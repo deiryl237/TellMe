@@ -63,12 +63,12 @@ public class MessageStore{
         MessageCollection.GetValueOrDefault(hash); //recupere un message grace à sa clé dans le dictionnaire MessageCollection 
         }
     }
-    public void AddMessage(MeshMessage message)
+    public void AddMessage(MeshMessage message, bool verifySignature = true)
     {
-        
         if (string.IsNullOrEmpty(message.Signature)) return;
-        // Vérification cryptographique : Si une signature est présente, elle DOIT être authentique
-        if (!string.IsNullOrEmpty(message.Signature))
+
+        // Vérification cryptographique : Si demandée, la signature DOIT être authentique
+        if (verifySignature)
         {
             if (!CryptoService.Verify(message.Hash, message.Signature, message.From))
             {
@@ -111,7 +111,7 @@ public class MessageStore{
             Buffer.Remove(message.Hash);//on vide le buffer
 
             foreach(MeshMessage orphan in Orphans ){
-                AddMessage(orphan); //on envoi les messages qui l'attendaient à la méthode AddMessage
+                AddMessage(orphan, verifySignature: false); // Signature déjà validée lors de l'entrée dans le buffer
             }
 
         }

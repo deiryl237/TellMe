@@ -36,13 +36,73 @@ public class TellMeDatabase{
         return await _database.Table<Contact>().FirstOrDefaultAsync(c => c.PublicKey == publicKey);
     }
 
-    public async Task SaveMessageAsync(MeshMessage message, bool isPersonal, bool isOrphan){//Sauvegarder un MeshMessage dans la table StoredMessage
-        StoredMessage storedmsg = StoredMessage.FromMeshMessage(message,isPersonal,isOrphan);
+    public async Task SaveMessageAsync(
+        MeshMessage message, 
+        bool isPersonal, 
+        bool isOrphan, 
+        MessageDeliveryStatus? status = null, 
+        bool isAck = false, 
+        string ackTargetHash = "")
+    {
+        StoredMessage storedmsg = StoredMessage.FromMeshMessage(message, isPersonal, isOrphan, status, isAck, ackTargetHash);
         await InsertStoredMessageAsync(storedmsg);
     }
 
-    public async Task InsertStoredMessageAsync(StoredMessage stored) {//méthode utilitaire pour insérér un message dans la table StoredMessage 
+    public async Task InsertStoredMessageAsync(StoredMessage stored) {
         await _database.InsertOrReplaceAsync(stored); 
+    }
+
+    public async Task DeleteStoredMessageAsync(string hash)
+    {
+        await _database.ExecuteAsync("DELETE FROM StoredMessage WHERE Hash = ?", hash);
+    }
+
+    public async Task<List<StoredMessage>> GetQueuedMessagesForContactAsync(string to)
+    {
+        return await _database.Table<StoredMessage>()
+            .Where(m => m.To == to && m.DeliveryStatus == MessageDeliveryStatus.Queued)
+            .OrderBy(m => m.CreatedAt)
+            .ToListAsync();
+    }
+
+    public async Task<List<StoredMessage>> GetInFlightMessagesForContactAsync(string to)
+    {
+        return await _database.Table<StoredMessage>()
+            .Where(m => m.To == to && m.DeliveryStatus == MessageDeliveryStatus.InFlight)
+            .OrderBy(m => m.CreatedAt)
+            .ToListAsync();
+    }
+
+    public async Task UpdateMessageDeliveryStatusAsync(string hash, MessageDeliveryStatus status)
+    {
+        var msg = await _database.Table<StoredMessage>().FirstOrDefaultAsync(m => m.Hash == hash);
+        if (msg != null)
+        {
+            msg.DeliveryStatus = status;
+            await _database.UpdateAsync(msg);
+        }
+    }
+
+    public async Task MarkMessagesAsDeliveredForContactAsync(string contactPublicKey, string? targetHash = null)
+    {
+        if (!string.IsNullOrEmpty(targetHash))
+        {
+            var target = await _database.Table<StoredMessage>().FirstOrDefaultAsync(m => m.Hash == targetHash);
+            if (target != null)
+            {
+                target.DeliveryStatus = MessageDeliveryStatus.Delivered;
+                await _database.UpdateAsync(target);
+            }
+        }
+        else
+        {
+            var inFlight = await GetInFlightMessagesForContactAsync(contactPublicKey);
+            foreach (var msg in inFlight)
+            {
+                msg.DeliveryStatus = MessageDeliveryStatus.Delivered;
+                await _database.UpdateAsync(msg);
+            }
+        }
     }
 
     public async Task<List<StoredMessage>> GetAllStoredMessagesAsync(){
@@ -87,6 +147,7 @@ public class TellMeDatabase{
                 var dt = DateTimeOffset.FromUnixTimeMilliseconds(beforeTimestamp).UtcDateTime;
                 string query = @"SELECT * FROM StoredMessage 
                                   WHERE [To] = ? 
+                                    AND (IsAck = 0 OR IsAck IS NULL)
                                     AND (CreatedAt < ? OR (CreatedAt = 0 AND ReceivedAt < ?))
                                   ORDER BY CASE WHEN CreatedAt > 0 THEN CreatedAt ELSE 0 END DESC, ReceivedAt DESC 
                                   LIMIT ?";
@@ -96,6 +157,7 @@ public class TellMeDatabase{
             {
                 string query = @"SELECT * FROM StoredMessage 
                                   WHERE [To] = ? 
+                                    AND (IsAck = 0 OR IsAck IS NULL)
                                   ORDER BY CASE WHEN CreatedAt > 0 THEN CreatedAt ELSE 0 END DESC, ReceivedAt DESC 
                                   LIMIT ?";
                 return await _database.QueryAsync<StoredMessage>(query, conversationKey, limit);
@@ -109,6 +171,7 @@ public class TellMeDatabase{
                 var dt = DateTimeOffset.FromUnixTimeMilliseconds(beforeTimestamp).UtcDateTime;
                 string query = @"SELECT * FROM StoredMessage 
                                   WHERE (([To] = ? AND [From] = ?) OR ([From] = ? AND [To] = ?))
+                                    AND (IsAck = 0 OR IsAck IS NULL)
                                     AND (CreatedAt < ? OR (CreatedAt = 0 AND ReceivedAt < ?))
                                   ORDER BY CASE WHEN CreatedAt > 0 THEN CreatedAt ELSE 0 END DESC, ReceivedAt DESC 
                                   LIMIT ?";
@@ -118,6 +181,7 @@ public class TellMeDatabase{
             {
                 string query = @"SELECT * FROM StoredMessage 
                                   WHERE (([To] = ? AND [From] = ?) OR ([From] = ? AND [To] = ?))
+                                    AND (IsAck = 0 OR IsAck IS NULL)
                                   ORDER BY CASE WHEN CreatedAt > 0 THEN CreatedAt ELSE 0 END DESC, ReceivedAt DESC 
                                   LIMIT ?";
                 return await _database.QueryAsync<StoredMessage>(query, conversationKey, safeMyId, conversationKey, safeMyId, limit);

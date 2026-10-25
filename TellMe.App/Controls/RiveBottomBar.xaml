@@ -8,18 +8,40 @@
 
     <Grid HeightRequest="165" BackgroundColor="Transparent">
 
+        <!-- Forme d'arrière-plan beige uni épousant strictement l'arc du fil Rive -->
+        <Path x:Name="BeigeArcPath"
+              Fill="#F5EFE6"
+              StrokeThickness="0"
+              InputTransparent="True"
+              HorizontalOptions="Fill"
+              VerticalOptions="Fill">
+            <Path.Data>
+                <PathGeometry>
+                    <PathFigure StartPoint="0, 42" IsClosed="True">
+                        <LineSegment Point="30, 42" />
+                        <BezierSegment Point1="135, 110" Point2="295, 110" Point3="400, 42" />
+                        <LineSegment Point="430, 42" />
+                        <LineSegment Point="430, 165" />
+                        <LineSegment Point="0, 165" />
+                    </PathFigure>
+                </PathGeometry>
+            </Path.Data>
+        </Path>
+
         <!-- 1. Vue Rive native animée (arrière-plan interactif 60 FPS) -->
         <controls:RiveBottomBarView x:Name="RiveView"
                                     HeightRequest="165"
+                                    BackgroundColor="Transparent"
+                                    InputTransparent="True"
                                     HorizontalOptions="Fill"
                                     VerticalOptions="Fill" />
 
         <!-- 2. Grille tactile invisible à 4 colonnes (Accueil, Chats, Public, Garde-Robe) -->
         <Grid ColumnDefinitions="*, *, *, *"
-              HeightRequest="165"
+              HeightRequest="120"
+              VerticalOptions="End"
               BackgroundColor="Transparent"
-              HorizontalOptions="Fill"
-              VerticalOptions="Fill">
+              HorizontalOptions="Fill">
 
             <!-- Colonne 0 : ACCUEIL -->
             <Grid Grid.Column="0" BackgroundColor="Transparent">

@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewmodels="clr-namespace:TellMe.App.ViewModels"
+             x:Class="TellMe.App.Views.Tabs.WardrobeTabView"
+             x:DataType="viewmodels:MainViewModel">
+
+    <ScrollView Padding="16, 12, 16, 170">
+        <VerticalStackLayout Spacing="16">
+
+            <!-- Carte de présentation Pigeon (Emblème TellMe & Rang) -->
+            <Border BackgroundColor="#FFFDF9" Stroke="#E5DFD7" StrokeThickness="1.5" StrokeShape="RoundRectangle 20" Padding="20">
+                <VerticalStackLayout Spacing="10" HorizontalOptions="Center">
+                    <Border WidthRequest="84"
+                            HeightRequest="84"
+                            StrokeShape="RoundRectangle 42"
+                            Stroke="#DDD6FE"
+                            StrokeThickness="2.5"
+                            BackgroundColor="#FFFFFF"
+                            HorizontalOptions="Center">
+                        <Image Source="tellme_mark.png" Aspect="AspectFit" Margin="6" />
+                    </Border>
+                    
+                    <Label Text="{Binding PigeonName}" FontSize="22" FontAttributes="Bold" TextColor="#231F1E" HorizontalOptions="Center" />
+                    
+                    <Border BackgroundColor="#F5F3FF" Stroke="#DDD6FE" StrokeShape="RoundRectangle 12" Padding="12, 4" HorizontalOptions="Center">
+                        <Label Text="{Binding PigeonRank}" FontSize="12" FontAttributes="Bold" TextColor="#7C3AED" />
+                    </Border>
+
+                    <Label Text="{Binding ExperiencePoints, StringFormat='Expérience : {0} XP'}" FontSize="13" TextColor="#15803D" FontAttributes="Bold" HorizontalOptions="Center" />
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Formulaire de personnalisation -->
+            <Border BackgroundColor="#FFFDF9" Stroke="#E5DFD7" StrokeThickness="1.5" StrokeShape="RoundRectangle 20" Padding="16">
+                <VerticalStackLayout Spacing="14">
+                    <Label Text="Personnalisation du Messager" FontSize="16" FontAttributes="Bold" TextColor="#231F1E" />
+
+                    <!-- Nom du pigeon -->
+                    <VerticalStackLayout Spacing="4">
+                        <Label Text="Nom de ton Pigeon :" FontSize="12" TextColor="#64748B" />
+                        <Entry x:Name="PigeonNameEntry"
+                               Text="{Binding PigeonName}"
+                               Placeholder="Ex: AileRapide"
+                               TextColor="#231F1E"
+                               PlaceholderColor="#94A3B8"
+                               BackgroundColor="#FAF7F2"
+                               HeightRequest="46" />
+                    </VerticalStackLayout>
+
+                    <!-- Couleur des plumes -->
+                    <VerticalStackLayout Spacing="4">
+                        <Label Text="Couleur du plumage :" FontSize="12" TextColor="#64748B" />
+                        <Picker x:Name="FeatherPicker"
+                                SelectedItem="{Binding FeatherColor}"
+                                TextColor="#231F1E"
+                                TitleColor="#64748B"
+                                BackgroundColor="#FAF7F2"
+                                HeightRequest="46">
+                            <Picker.ItemsSource>
+                                <x:Array Type="{x:Type x:String}">
+                                    <x:String>Bleu Nuit</x:String>
+                                    <x:String>Blanc Nuage</x:String>
+                                    <x:String>Émeraude</x:String>
+                                    <x:String>Violet Royal</x:String>
+                                    <x:String>Or Astral</x:String>
+                                </x:Array>
+                            </Picker.ItemsSource>
+                        </Picker>
+                    </VerticalStackLayout>
+
+                    <!-- Accessoire -->
+                    <VerticalStackLayout Spacing="4">
+                        <Label Text="Accessoire :" FontSize="12" TextColor="#64748B" />
+                        <Picker x:Name="AccessoryPicker"
+                                SelectedItem="{Binding Accessory}"
+                                TextColor="#231F1E"
+                                TitleColor="#64748B"
+                                BackgroundColor="#FAF7F2"
+                                HeightRequest="46">
+                            <Picker.ItemsSource>
+                                <x:Array Type="{x:Type x:String}">
+                                    <x:String>Aucun</x:String>
+                                    <x:String>Casquette de facteur</x:String>
+                                    <x:String>Lunettes aviateur</x:String>
+                                    <x:String>Écharpe rouge</x:String>
+                                    <x:String>Lettre dorée scellée</x:String>
+                                </x:Array>
+                            </Picker.ItemsSource>
+                        </Picker>
+                    </VerticalStackLayout>
+
+                    <Button Text="Enregistrer mon Pigeon"
+                            BackgroundColor="#231F1E"
+                            TextColor="#FAF7F2"
+                            BorderColor="#231F1E"
+                            BorderWidth="1.5"
+                            FontAttributes="Bold"
+                            CornerRadius="14"
+                            HeightRequest="48"
+                            Clicked="OnSavePigeonClicked">
+                        <Button.Shadow>
+                            <Shadow Brush="#231F1E" Offset="2, 3" Radius="0" Opacity="0.2" />
+                        </Button.Shadow>
+                    </Button>
+                </VerticalStackLayout>
+            </Border>
+
+        </VerticalStackLayout>
+    </ScrollView>
+
+</ContentView>

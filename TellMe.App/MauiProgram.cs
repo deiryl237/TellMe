@@ -34,6 +34,7 @@ public static class MauiProgram
 			{
 #if ANDROID
 				handlers.AddHandler<TellMe.App.Controls.RiveBottomBarView, TellMe.App.Platforms.Android.RiveBottomBarHandler>();
+				handlers.AddHandler<TellMe.App.Controls.RiveWheelView, TellMe.App.Platforms.Android.RiveWheelHandler>();
 #endif
 			});
 

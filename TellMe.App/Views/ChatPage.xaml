@@ -5,26 +5,26 @@
              x:Class="TellMe.App.Views.ChatPage"
              x:DataType="vm:ChatViewModel"
              Title="{Binding Title}"
-             BackgroundColor="#F8FAFC">
+             BackgroundColor="#FAF7F2">
 
     <Grid RowDefinitions="*, Auto" Padding="12" RowSpacing="8">
 
         <!-- 1. Liste des bulles de messages -->
         <CollectionView x:Name="MessagesCollectionView"
-                        Grid.Row="0"
-                        ItemsSource="{Binding Messages}"
-                        Scrolled="OnCollectionViewScrolled">
+                         Grid.Row="0"
+                         ItemsSource="{Binding Messages}"
+                         Scrolled="OnCollectionViewScrolled">
             <CollectionView.Header>
                 <Grid Padding="0, 6" IsVisible="{Binding IsLoadingOlder}">
                     <ActivityIndicator IsRunning="{Binding IsLoadingOlder}"
-                                       Color="#7C3AED"
-                                       HeightRequest="24"
-                                       WidthRequest="24"
-                                       HorizontalOptions="Center" />
+                                        Color="#7C3AED"
+                                        HeightRequest="24"
+                                        WidthRequest="24"
+                                        HorizontalOptions="Center" />
                 </Grid>
             </CollectionView.Header>
             <CollectionView.EmptyView>
-                <Label Text="Aucun message pour l'instant. Dis bonjour ! 🕊️"
+                <Label Text="Aucun message pour l'instant. Dites bonjour !"
                        TextColor="#64748B"
                        HorizontalOptions="Center"
                        VerticalOptions="Center" />
@@ -35,25 +35,25 @@
                         <Frame CornerRadius="16"
                                Padding="14, 10"
                                MaximumWidthRequest="300"
-                               BorderColor="#E2E8F0"
+                               BorderColor="#E5DFD7"
                                HasShadow="False">
                             <Frame.Triggers>
-                                <!-- Si c'est mon message : bulle violette à droite -->
+                                <!-- Mon message : bulle violette à droite -->
                                 <DataTrigger TargetType="Frame" Binding="{Binding IsMine}" Value="True">
                                     <Setter Property="HorizontalOptions" Value="End" />
                                     <Setter Property="BackgroundColor" Value="#7C3AED" />
                                     <Setter Property="BorderColor" Value="Transparent" />
                                 </DataTrigger>
-                                <!-- Si c'est un message reçu : bulle blanche à gauche -->
+                                <!-- Message reçu : bulle papier blanc/ivoire à gauche -->
                                 <DataTrigger TargetType="Frame" Binding="{Binding IsMine}" Value="False">
                                     <Setter Property="HorizontalOptions" Value="Start" />
-                                    <Setter Property="BackgroundColor" Value="#FFFFFF" />
-                                    <Setter Property="BorderColor" Value="#E2E8F0" />
+                                    <Setter Property="BackgroundColor" Value="#FFFDF9" />
+                                    <Setter Property="BorderColor" Value="#E5DFD7" />
                                 </DataTrigger>
                             </Frame.Triggers>
 
                             <VerticalStackLayout Spacing="4">
-                                <!-- Nom de l'expéditeur (affiché seulement si ce n'est pas moi) -->
+                                <!-- Nom de l'expéditeur -->
                                 <Label Text="{Binding SenderName}"
                                        FontSize="11"
                                        TextColor="#7C3AED"
@@ -73,24 +73,50 @@
                                             <Setter Property="TextColor" Value="#FFFFFF" />
                                         </DataTrigger>
                                         <DataTrigger TargetType="Label" Binding="{Binding IsMine}" Value="False">
-                                            <Setter Property="TextColor" Value="#0F172A" />
+                                            <Setter Property="TextColor" Value="#231F1E" />
                                         </DataTrigger>
                                     </Label.Triggers>
                                 </Label>
 
-                                <!-- Heure -->
-                                <Label Text="{Binding TimeString}"
-                                       FontSize="10"
-                                       HorizontalOptions="End">
-                                    <Label.Triggers>
-                                        <DataTrigger TargetType="Label" Binding="{Binding IsMine}" Value="True">
-                                            <Setter Property="TextColor" Value="#E9D5FF" />
-                                        </DataTrigger>
-                                        <DataTrigger TargetType="Label" Binding="{Binding IsMine}" Value="False">
-                                            <Setter Property="TextColor" Value="#94A3B8" />
-                                        </DataTrigger>
-                                    </Label.Triggers>
-                                </Label>
+                                <!-- Heure et Statut Pigeon -->
+                                <Grid ColumnDefinitions="*, Auto" Margin="0, 2, 0, 0" VerticalOptions="Center">
+                                    <Label Text="{Binding StatusLabel}"
+                                           FontSize="10"
+                                           IsVisible="{Binding ShowDeliveryStatus}"
+                                           VerticalOptions="Center">
+                                        <Label.Triggers>
+                                            <DataTrigger TargetType="Label" Binding="{Binding IsQueued}" Value="True">
+                                                <Setter Property="TextColor" Value="#FDE68A" />
+                                            </DataTrigger>
+                                            <DataTrigger TargetType="Label" Binding="{Binding IsInFlight}" Value="True">
+                                                <Setter Property="TextColor" Value="#E9D5FF" />
+                                            </DataTrigger>
+                                            <DataTrigger TargetType="Label" Binding="{Binding IsDelivered}" Value="True">
+                                                <Setter Property="TextColor" Value="#A7F3D0" />
+                                            </DataTrigger>
+                                        </Label.Triggers>
+                                    </Label>
+
+                                    <HorizontalStackLayout Grid.Column="1" Spacing="4" VerticalOptions="Center">
+                                        <Label Text="{Binding TimeString}"
+                                               FontSize="10"
+                                               VerticalOptions="Center">
+                                            <Label.Triggers>
+                                                <DataTrigger TargetType="Label" Binding="{Binding IsMine}" Value="True">
+                                                    <Setter Property="TextColor" Value="#E9D5FF" />
+                                                </DataTrigger>
+                                                <DataTrigger TargetType="Label" Binding="{Binding IsMine}" Value="False">
+                                                    <Setter Property="TextColor" Value="#94A3B8" />
+                                                </DataTrigger>
+                                            </Label.Triggers>
+                                        </Label>
+                                        <Image Source="{Binding StatusIcon}"
+                                               WidthRequest="12"
+                                               HeightRequest="12"
+                                               IsVisible="{Binding ShowDeliveryStatus}"
+                                               VerticalOptions="Center" />
+                                    </HorizontalStackLayout>
+                                </Grid>
                             </VerticalStackLayout>
                         </Frame>
                     </VerticalStackLayout>
@@ -98,32 +124,65 @@
             </CollectionView.ItemTemplate>
         </CollectionView>
 
-        <!-- 2. Zone de saisie et bouton d'envoi -->
-        <Grid Grid.Row="1" ColumnDefinitions="*, Auto" ColumnSpacing="8" Padding="0, 6">
-            <Frame Grid.Column="0"
-                   BackgroundColor="#FFFFFF"
-                   BorderColor="#CBD5E1"
-                   CornerRadius="24"
-                   Padding="14, 2"
-                   HasShadow="False">
-                <Entry Placeholder="Écris ton message..."
-                       PlaceholderColor="#94A3B8"
-                       Text="{Binding InputText, Mode=TwoWay}"
-                       TextColor="#0F172A"
-                       BackgroundColor="Transparent"
-                       Completed="OnSendClicked" />
-            </Frame>
+        <!-- 2. Zone de saisie, bannière d'état et bouton d'envoi -->
+        <VerticalStackLayout Grid.Row="1" Spacing="6" Padding="0, 4">
 
-            <Button Grid.Column="1"
-                    Text="Envoyer"
-                    BackgroundColor="#7C3AED"
-                    TextColor="#FFFFFF"
-                    FontAttributes="Bold"
-                    CornerRadius="22"
-                    HeightRequest="46"
-                    Padding="16, 0"
-                    Clicked="OnSendClicked" />
-        </Grid>
+            <!-- Bannière d'état du pigeon (quand en vol) -->
+            <Border IsVisible="{Binding IsPigeonInFlight}"
+                    BackgroundColor="#FFFDF9"
+                    Stroke="#FDE68A"
+                    StrokeShape="RoundRectangle 12"
+                    Padding="12, 8">
+                <Grid ColumnDefinitions="Auto, *">
+                    <Image Grid.Column="0" Source="icon_feather.svg" WidthRequest="18" HeightRequest="18" VerticalOptions="Center" Margin="0, 0, 8, 0" />
+                    <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Spacing="1">
+                        <Label Text="{Binding PigeonBannerTitle}"
+                               FontSize="12"
+                               FontAttributes="Bold"
+                               TextColor="#92400E" />
+                        <Label Text="{Binding PigeonBannerSubtitle}"
+                               FontSize="11"
+                               TextColor="#B45309" />
+                    </VerticalStackLayout>
+                </Grid>
+            </Border>
+
+            <!-- Champ de saisie et bouton d'envoi -->
+            <Grid ColumnDefinitions="*, Auto" ColumnSpacing="8">
+                <Border Grid.Column="0"
+                        BackgroundColor="#FFFFFF"
+                        Stroke="#231F1E"
+                        StrokeThickness="1.5"
+                        StrokeShape="RoundRectangle 24"
+                        Padding="14, 2">
+                    <Border.Shadow>
+                        <Shadow Brush="#231F1E" Offset="1, 1.5" Radius="0" Opacity="0.12" />
+                    </Border.Shadow>
+                    <Entry Placeholder="Écrivez votre message..."
+                           PlaceholderColor="#94A3B8"
+                           Text="{Binding InputText, Mode=TwoWay}"
+                           TextColor="#231F1E"
+                           BackgroundColor="Transparent"
+                           Completed="OnSendClicked" />
+                </Border>
+
+                <Button Grid.Column="1"
+                        Text="Envoyer"
+                        BackgroundColor="#231F1E"
+                        TextColor="#FAF7F2"
+                        BorderColor="#231F1E"
+                        BorderWidth="1.5"
+                        FontAttributes="Bold"
+                        CornerRadius="22"
+                        HeightRequest="46"
+                        Padding="18, 0"
+                        Clicked="OnSendClicked">
+                    <Button.Shadow>
+                        <Shadow Brush="#231F1E" Offset="1.5, 2" Radius="0" Opacity="0.2" />
+                    </Button.Shadow>
+                </Button>
+            </Grid>
+        </VerticalStackLayout>
 
     </Grid>
 

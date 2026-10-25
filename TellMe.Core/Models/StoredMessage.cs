@@ -15,6 +15,13 @@ public class StoredMessage{
     [Indexed]public long CreatedAt {get;set;}
     public string Signature { get;set; } = string.Empty;
 
+    [Indexed]
+    public MessageDeliveryStatus DeliveryStatus { get; set; } = MessageDeliveryStatus.InFlight;
+    [Indexed]
+    public bool IsAck { get; set; } = false;
+    [Indexed]
+    public string AckTargetHash { get; set; } = string.Empty;
+
 
     public StoredMessage(){
 
@@ -28,8 +35,16 @@ public class StoredMessage{
        return meshmessage;
 
     }
-    public static StoredMessage FromMeshMessage(MeshMessage msg,bool isPersonal,bool isOrphan){
+    public static StoredMessage FromMeshMessage(
+        MeshMessage msg,
+        bool isPersonal,
+        bool isOrphan,
+        MessageDeliveryStatus? deliveryStatus = null,
+        bool isAck = false,
+        string ackTargetHash = "")
+    {
         long ts = msg.Timestamp > 0 ? msg.Timestamp : DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+        MessageDeliveryStatus status = deliveryStatus ?? (isPersonal ? MessageDeliveryStatus.InFlight : MessageDeliveryStatus.Delivered);
         return new StoredMessage{
             Message = msg.Message,
             Hash = msg.Hash,
@@ -40,7 +55,10 @@ public class StoredMessage{
             IsOrphan = isOrphan,
             ReceivedAt = DateTime.UtcNow,
             CreatedAt = ts,
-            Signature = msg.Signature
+            Signature = msg.Signature,
+            DeliveryStatus = status,
+            IsAck = isAck,
+            AckTargetHash = ackTargetHash
         };
     }
 

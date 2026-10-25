@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewmodels="clr-namespace:TellMe.App.ViewModels"
+             x:Class="TellMe.App.Views.Tabs.CampusTabView"
+             x:DataType="viewmodels:MainViewModel">
+
+    <ScrollView Padding="16, 12, 16, 170">
+        <VerticalStackLayout Spacing="16">
+
+            <!-- Carte principale Babillard Place Publique -->
+            <Border BackgroundColor="#FFFDF9" Stroke="#E5DFD7" StrokeThickness="1.5" StrokeShape="RoundRectangle 20" Padding="18">
+                <VerticalStackLayout Spacing="14">
+                    <Grid ColumnDefinitions="Auto, *" ColumnSpacing="12" VerticalOptions="Center">
+                        <Border Grid.Column="0" WidthRequest="44" HeightRequest="44" StrokeShape="RoundRectangle 22" BackgroundColor="#FAF7F2" Stroke="#E5DFD7" VerticalOptions="Center">
+                            <Image Source="icon_broadcast.svg" WidthRequest="22" HeightRequest="22" HorizontalOptions="Center" VerticalOptions="Center" />
+                        </Border>
+                        <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Spacing="2">
+                            <Label Text="Place Publique" FontSize="20" FontAttributes="Bold" TextColor="#231F1E" />
+                            <Label Text="Babillard libre &amp; ouvert du campus" FontSize="12" TextColor="#7C3AED" FontAttributes="Bold" />
+                        </VerticalStackLayout>
+                    </Grid>
+
+                    <Label Text="Ce canal est partagé avec tous les étudiants à portée de mesh. Vos messages voyagent anonymement de téléphone en téléphone à travers les amphis, couloirs et cafétérias sans Internet ni antenne relais !"
+                           FontSize="13" TextColor="#64748B" LineHeight="1.35" />
+
+                    <Button Text="Entrer dans la Place Publique"
+                            BackgroundColor="#231F1E"
+                            TextColor="#FAF7F2"
+                            BorderColor="#231F1E"
+                            BorderWidth="1.5"
+                            FontAttributes="Bold"
+                            CornerRadius="14"
+                            HeightRequest="48"
+                            Clicked="OnOpenCampusBoardClicked">
+                        <Button.Shadow>
+                            <Shadow Brush="#231F1E" Offset="2, 3" Radius="0" Opacity="0.2" />
+                        </Button.Shadow>
+                    </Button>
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Principes du babillard -->
+            <Border BackgroundColor="#FFFDF9" Stroke="#E5DFD7" StrokeThickness="1.5" StrokeShape="RoundRectangle 18" Padding="16">
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="Fonctionnement Décentralisé" FontSize="14" FontAttributes="Bold" TextColor="#231F1E" />
+                    <Label Text="• Chaque étudiant relaie les annonces publiques lors de ses déplacements." FontSize="12" TextColor="#64748B" />
+                    <Label Text="• Zéro consommation de data mobile ni besoin de réseau cellulaire." FontSize="12" TextColor="#64748B" />
+                    <Label Text="• Idéal pour les événements, trouvailles, alertes et annonces de cours." FontSize="12" TextColor="#64748B" />
+                </VerticalStackLayout>
+            </Border>
+
+        </VerticalStackLayout>
+    </ScrollView>
+
+</ContentView>

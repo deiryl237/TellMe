@@ -8,6 +8,11 @@ public class Contact{
     public string DisplayName{get;set;} = string.Empty;
     public string SharedAesKey{get;set;} = string.Empty;
     public string PigeonName{get;set;} = string.Empty;
+    public string PigeonState { get; set; } = "AtPerch"; // "AtPerch" | "InFlight"
+    public DateTime? FlightStartedAt { get; set; }
+    public int MessagesInFlightCount { get; set; } = 0;
+    public string PigeonAccessory { get; set; } = "Aucun";
+    public string PigeonFeatherColor { get; set; } = "Bleu";
     public DateTime CreatedAt{get;set;} = DateTime.UtcNow;
     [Ignore]
     public bool IsPublicBoard => PublicKey.StartsWith("PUBLICBOARD:");
@@ -18,7 +23,11 @@ public class Contact{
     [Ignore]
     public bool IsDirectContact => !IsBoard;
     [Ignore]
-    public string Icon => IsBoard ? "📢" : "👤";
+    public string Icon => IsBoard ? "icon_broadcast.svg" : "icon_user.svg";
+    [Ignore]
+    public string ShortId => IsBoard
+        ? PublicKey
+        : (PublicKey.Length > 16 ? $"ID: #{PublicKey[^8..]}" : PublicKey);
 
     public Contact(){
         

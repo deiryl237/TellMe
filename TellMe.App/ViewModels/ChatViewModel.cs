@@ -5,15 +5,64 @@ using Contact = TellMe.Core.Models.Contact;
 
 namespace TellMe.App.ViewModels;
 
-
-public class ChatMessageItem
+public class ChatMessageItem : BaseViewModel
 {
-    public string Hash { get; set; } = string.Empty;
-    public string Text { get; set; } = string.Empty;
+    private string _hash = string.Empty;
+    public string Hash
+    {
+        get => _hash;
+        set => SetProperty(ref _hash, value);
+    }
+
+    private string _text = string.Empty;
+    public string Text
+    {
+        get => _text;
+        set => SetProperty(ref _text, value);
+    }
+
     public string SenderName { get; set; } = string.Empty;
     public bool IsMine { get; set; }
+    public bool ShowDeliveryStatus { get; set; }
     public string TimeString { get; set; } = string.Empty;
     public long Timestamp { get; set; }
+
+    private MessageDeliveryStatus _deliveryStatus = MessageDeliveryStatus.InFlight;
+    public MessageDeliveryStatus DeliveryStatus
+    {
+        get => _deliveryStatus;
+        set
+        {
+            if (SetProperty(ref _deliveryStatus, value))
+            {
+                OnPropertyChanged(nameof(StatusIcon));
+                OnPropertyChanged(nameof(StatusLabel));
+                OnPropertyChanged(nameof(IsQueued));
+                OnPropertyChanged(nameof(IsInFlight));
+                OnPropertyChanged(nameof(IsDelivered));
+            }
+        }
+    }
+
+    public bool IsQueued => DeliveryStatus == MessageDeliveryStatus.Queued;
+    public bool IsInFlight => DeliveryStatus == MessageDeliveryStatus.InFlight;
+    public bool IsDelivered => DeliveryStatus == MessageDeliveryStatus.Delivered;
+
+    public string StatusIcon => (!ShowDeliveryStatus) ? string.Empty : DeliveryStatus switch
+    {
+        MessageDeliveryStatus.Queued => "icon_radar.svg",
+        MessageDeliveryStatus.InFlight => "icon_feather.svg",
+        MessageDeliveryStatus.Delivered => "icon_check.svg",
+        _ => string.Empty
+    };
+
+    public string StatusLabel => (!ShowDeliveryStatus) ? string.Empty : DeliveryStatus switch
+    {
+        MessageDeliveryStatus.Queued => "En attente au pigeonnier",
+        MessageDeliveryStatus.InFlight => "En vol",
+        MessageDeliveryStatus.Delivered => "Reçu",
+        _ => string.Empty
+    };
 }
 
 public class ChatViewModel : BaseViewModel
@@ -51,6 +100,27 @@ public class ChatViewModel : BaseViewModel
         set => SetProperty(ref _hasMoreOlderMessages, value);
     }
 
+    public bool IsDirectContact => _targetConversation != null && _targetConversation.IsDirectContact;
+
+    public bool IsPigeonInFlight => IsDirectContact && _targetConversation?.PigeonState == "InFlight";
+
+    public int QueuedCount => Messages.Count(m => m.IsMine && m.DeliveryStatus == MessageDeliveryStatus.Queued);
+
+    public string PigeonBannerTitle => $"Pigeon '{_targetConversation?.PigeonName ?? "Messager"}' en vol";
+
+    public string PigeonBannerSubtitle
+    {
+        get
+        {
+            int q = QueuedCount;
+            if (q > 0)
+            {
+                return $"{q} message(s) en attente au pigeonnier. Ils partiront groupés dès le retour du pigeon.";
+            }
+            return $"Il transporte votre message vers {_targetConversation?.DisplayName}. Vos prochains messages attendront son retour.";
+        }
+    }
+
     public ObservableCollection<ChatMessageItem> Messages { get; } = new();
 
     public event Action? ScrollToBottomRequested;
@@ -83,9 +153,23 @@ public class ChatViewModel : BaseViewModel
         Title = conversation.DisplayName;
         HasMoreOlderMessages = true;
 
-        // 1. Écouter les nouveaux messages entrants
+        // 1. Écouter les événements du moteur TellMe
         _engine._store.MessageAdded -= OnMessageAdded;
         _engine._store.MessageAdded += OnMessageAdded;
+
+        _engine.PigeonTookOff -= OnPigeonTookOff;
+        _engine.PigeonTookOff += OnPigeonTookOff;
+
+        _engine.PigeonReturned -= OnPigeonReturned;
+        _engine.PigeonReturned += OnPigeonReturned;
+
+        _engine.MessageDelivered -= OnMessageDelivered;
+        _engine.MessageDelivered += OnMessageDelivered;
+
+        _engine.MessageQueued -= OnMessageQueued;
+        _engine.MessageQueued += OnMessageQueued;
+
+        UpdatePigeonState();
 
         // 2. Charger le dernier palier de messages de façon instantanée
         await LoadInitialMessagesAsync();
@@ -110,10 +194,14 @@ public class ChatViewModel : BaseViewModel
         var items = new List<ChatMessageItem>();
         foreach (var s in stored)
         {
+            if (s.IsAck) continue;
             var mesh = s.ToMeshMessage();
             long ts = mesh.Timestamp > 0 ? mesh.Timestamp : ((DateTimeOffset)s.ReceivedAt).ToUnixTimeMilliseconds();
-            var item = await CreateMessageItemAsync(mesh, ts);
-            items.Add(item);
+            var item = await CreateMessageItemAsync(mesh, ts, s.DeliveryStatus);
+            if (item != null)
+            {
+                items.Add(item);
+            }
         }
 
         // Remettre dans l'ordre chronologique (du plus ancien au plus récent)
@@ -126,6 +214,7 @@ public class ChatViewModel : BaseViewModel
             {
                 Messages.Add(item);
             }
+            UpdatePigeonState();
             ScrollToBottomRequested?.Invoke();
         });
     }
@@ -164,21 +253,22 @@ public class ChatViewModel : BaseViewModel
             var items = new List<ChatMessageItem>();
             foreach (var s in stored)
             {
+                if (s.IsAck) continue;
                 var mesh = s.ToMeshMessage();
                 long ts = mesh.Timestamp > 0 ? mesh.Timestamp : ((DateTimeOffset)s.ReceivedAt).ToUnixTimeMilliseconds();
-                var item = await CreateMessageItemAsync(mesh, ts);
-                items.Add(item);
+                var item = await CreateMessageItemAsync(mesh, ts, s.DeliveryStatus);
+                if (item != null)
+                {
+                    items.Add(item);
+                }
             }
 
-            // stored était DESC (du plus récent parmi les anciens au plus vieux).
-            // items.Reverse() met les plus anciens en premier.
             items.Reverse();
 
             MainThread.BeginInvokeOnMainThread(() =>
             {
                 var previousTopItem = Messages.FirstOrDefault();
 
-                // Insérer les messages plus anciens au tout début de la liste
                 for (int i = items.Count - 1; i >= 0; i--)
                 {
                     if (!Messages.Any(m => m.Hash == items[i].Hash))
@@ -187,7 +277,6 @@ public class ChatViewModel : BaseViewModel
                     }
                 }
 
-                // Stabiliser la vue sur l'élément où l'utilisateur se trouvait
                 if (previousTopItem != null)
                 {
                     ScrollToItemRequested?.Invoke(previousTopItem);
@@ -204,13 +293,14 @@ public class ChatViewModel : BaseViewModel
     {
         if (!IsMessageForThisConversation(msg)) return;
 
-        var item = await CreateMessageItemAsync(msg, msg.Timestamp);
+        bool isMine = _engine._myaccount != null && msg.From == _engine._myaccount.Id;
+        var item = await CreateMessageItemAsync(msg, msg.Timestamp, isMine ? MessageDeliveryStatus.InFlight : MessageDeliveryStatus.Delivered);
+        if (item == null) return;
+
         MainThread.BeginInvokeOnMainThread(() =>
         {
-            // Éviter les doublons visuels
             if (Messages.Any(m => m.Hash == item.Hash)) return;
 
-            // Si c'est le message le plus récent, on l'ajoute à la fin et on scroll en bas
             if (Messages.Count == 0 || item.Timestamp >= Messages.Last().Timestamp)
             {
                 Messages.Add(item);
@@ -218,7 +308,6 @@ public class ChatViewModel : BaseViewModel
             }
             else
             {
-                // Insérer à la position chronologique exacte
                 int insertIndex = Messages.Count;
                 for (int i = 0; i < Messages.Count; i++)
                 {
@@ -230,13 +319,106 @@ public class ChatViewModel : BaseViewModel
                 }
                 Messages.Insert(insertIndex, item);
             }
+
+            UpdatePigeonState();
         });
     }
 
-    private async Task<ChatMessageItem> CreateMessageItemAsync(MeshMessage msg, long timestamp = 0)
+    private void OnMessageQueued(StoredMessage queued)
     {
-        bool isMine = _engine._myaccount != null && msg.From == _engine._myaccount.Id;
+        if (_targetConversation == null || queued.To != _targetConversation.PublicKey) return;
+
+        MainThread.BeginInvokeOnMainThread(async () =>
+        {
+            var existing = Messages.FirstOrDefault(m => m.Hash == queued.Hash);
+            if (existing == null)
+            {
+                var item = await CreateMessageItemAsync(queued.ToMeshMessage(), queued.CreatedAt, MessageDeliveryStatus.Queued);
+                if (item != null)
+                {
+                    Messages.Add(item);
+                    ScrollToBottomRequested?.Invoke();
+                }
+            }
+            UpdatePigeonState();
+        });
+    }
+
+    private void OnPigeonTookOff(Contact contact, List<StoredMessage> msgs)
+    {
+        if (_targetConversation == null || contact.PublicKey != _targetConversation.PublicKey) return;
+
+        MainThread.BeginInvokeOnMainThread(() =>
+        {
+            _targetConversation.PigeonState = "InFlight";
+            _targetConversation.FlightStartedAt = contact.FlightStartedAt;
+            _targetConversation.MessagesInFlightCount = contact.MessagesInFlightCount;
+
+            // Passer tous les messages en attente en InFlight
+            foreach (var m in Messages.Where(m => m.IsMine && m.DeliveryStatus == MessageDeliveryStatus.Queued))
+            {
+                m.DeliveryStatus = MessageDeliveryStatus.InFlight;
+            }
+
+            foreach (var msg in msgs)
+            {
+                var match = Messages.FirstOrDefault(m => m.Hash == msg.Hash);
+                if (match != null)
+                {
+                    match.DeliveryStatus = MessageDeliveryStatus.InFlight;
+                }
+            }
+
+            UpdatePigeonState();
+        });
+    }
+
+    private void OnMessageDelivered(string targetHash)
+    {
+        MainThread.BeginInvokeOnMainThread(() =>
+        {
+            var match = Messages.FirstOrDefault(m => m.Hash == targetHash);
+            if (match != null)
+            {
+                match.DeliveryStatus = MessageDeliveryStatus.Delivered;
+            }
+            UpdatePigeonState();
+        });
+    }
+
+    private void OnPigeonReturned(Contact contact)
+    {
+        if (_targetConversation == null || contact.PublicKey != _targetConversation.PublicKey) return;
+
+        MainThread.BeginInvokeOnMainThread(() =>
+        {
+            _targetConversation.PigeonState = "AtPerch";
+            _targetConversation.MessagesInFlightCount = 0;
+            UpdatePigeonState();
+        });
+    }
+
+    private void UpdatePigeonState()
+    {
+        OnPropertyChanged(nameof(IsDirectContact));
+        OnPropertyChanged(nameof(IsPigeonInFlight));
+        OnPropertyChanged(nameof(PigeonBannerTitle));
+        OnPropertyChanged(nameof(PigeonBannerSubtitle));
+        OnPropertyChanged(nameof(QueuedCount));
+    }
+
+    private async Task<ChatMessageItem?> CreateMessageItemAsync(MeshMessage msg, long timestamp = 0, MessageDeliveryStatus status = MessageDeliveryStatus.InFlight)
+    {
         string text = await _engine.GetDecryptedContentAsync(msg);
+
+        // Les messages d'accusé de réception technique ne doivent JAMAIS apparaître dans le chat
+        if (string.IsNullOrWhiteSpace(text) || text.StartsWith("ACK:") || text.Contains("Accusé de réception"))
+        {
+            return null;
+        }
+
+        bool isMine = _engine._myaccount != null && msg.From == _engine._myaccount.Id;
+        bool isDirect = _targetConversation != null && _targetConversation.IsDirectContact;
 
         string senderName;
         if (isMine)
@@ -245,7 +427,6 @@ public class ChatViewModel : BaseViewModel
         }
         else if (_targetConversation?.IsBoard == true)
         {
-            // Sur un board public, on essaie de trouver le nom du contact, ou on affiche le début de sa clé
             var contact = await _engine._database.GetContactAsync(msg.From);
             senderName = contact?.DisplayName ?? (msg.From.Length > 6 ? msg.From[..6] : msg.From);
         }
@@ -263,14 +444,20 @@ public class ChatViewModel : BaseViewModel
             Text = text,
             SenderName = senderName,
             IsMine = isMine,
+            ShowDeliveryStatus = isMine && isDirect,
             TimeString = displayTime.ToString("HH:mm"),
-            Timestamp = ts
+            Timestamp = ts,
+            DeliveryStatus = isMine ? status : MessageDeliveryStatus.Delivered
         };
     }
 
     public void Cleanup()
     {
         _engine._store.MessageAdded -= OnMessageAdded;
+        _engine.PigeonTookOff -= OnPigeonTookOff;
+        _engine.PigeonReturned -= OnPigeonReturned;
+        _engine.MessageDelivered -= OnMessageDelivered;
+        _engine.MessageQueued -= OnMessageQueued;
     }
 
     public async Task SendMessageAsync()
@@ -279,7 +466,7 @@ public class ChatViewModel : BaseViewModel
             return;
 
         string textToSend = InputText.Trim();
-        InputText = string.Empty; // Vide le champ immédiatement pour la réactivité UI
+        InputText = string.Empty;
 
         await _engine.SendMessageAsync(textToSend, _targetConversation.PublicKey);
     }

@@ -32,11 +32,19 @@
                Margin="20,0" />
 
         <Button Text="Fermer"
-                BackgroundColor="#2C2C2E"
-                TextColor="#FFFFFF"
-                CornerRadius="8"
+                BackgroundColor="#231F1E"
+                TextColor="#FAF7F2"
+                BorderColor="#231F1E"
+                BorderWidth="1.5"
+                FontAttributes="Bold"
+                CornerRadius="14"
+                HeightRequest="46"
                 WidthRequest="140"
-                Clicked="OnCloseClicked" />
+                Clicked="OnCloseClicked">
+            <Button.Shadow>
+                <Shadow Brush="#231F1E" Offset="1.5, 2" Radius="0" Opacity="0.18" />
+            </Button.Shadow>
+        </Button>
 
     </VerticalStackLayout>
 

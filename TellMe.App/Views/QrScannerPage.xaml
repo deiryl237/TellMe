@@ -20,10 +20,18 @@
                    HorizontalOptions="Center" />
 
             <Button Text="Annuler"
-                    BackgroundColor="#2C2C2E"
-                    TextColor="#FFFFFF"
-                    CornerRadius="8"
-                    Clicked="OnCancelClicked" />
+                    BackgroundColor="#231F1E"
+                    TextColor="#FAF7F2"
+                    BorderColor="#3D3835"
+                    BorderWidth="1.5"
+                    FontAttributes="Bold"
+                    CornerRadius="14"
+                    HeightRequest="46"
+                    Clicked="OnCancelClicked">
+                <Button.Shadow>
+                    <Shadow Brush="#000000" Offset="1.5, 2" Radius="0" Opacity="0.3" />
+                </Button.Shadow>
+            </Button>
         </VerticalStackLayout>
     </Grid>
 

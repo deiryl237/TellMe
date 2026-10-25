@@ -483,7 +483,9 @@ $RECYCLE.BIN/
 
 # Documentation and Agent files
 docs/
+simulation/
 .agents/
+scratch/
 
 # Android build outputs
 *.apk

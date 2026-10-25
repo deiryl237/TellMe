@@ -2,7 +2,7 @@
 
 Réseau de messagerie décentralisé et asynchrone fondé sur un graphe acyclique dirigé causal (Merkle DAG) et un transport opportuniste pair-à-pair Bluetooth BLE (Delay-Tolerant Network).
 
-Projet d'ingénierie conçu et soutenu par **Fokam de loka wilfried** sous la direction de **Mr Dada Nelson** (Promotion 2026-2027, École Nationale Supérieure de Douala).
+Projet d'ingénierie conçu et soutenu par **Fokam de loka wilfried** sous la direction de **Mr Dada Nelson** (Glo niveau 5 Année 2026-2027, École Nationale Supérieure de Douala).
 
 ---
 
